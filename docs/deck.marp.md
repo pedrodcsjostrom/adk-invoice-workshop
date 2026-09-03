@@ -1,0 +1,88 @@
+---
+marp: true
+theme: default
+paginate: true
+size: 16:9
+style: |
+  section { font-size: 30px; padding: 60px 70px; }
+  section.lead { text-align: center; }
+  h1 { font-size: 54px; line-height: 1.15; }
+  h2 { font-size: 40px; }
+  code { font-size: 0.85em; }
+  footer { font-size: 15px; opacity: 0.55; font-family: monospace; }
+  .big { font-size: 46px; font-weight: 600; line-height: 1.5; }
+  .url { font-size: 44px; font-family: monospace; }
+---
+
+<!-- _class: lead -->
+
+# Build an agent that reads an invoice, catches one that does not add up, and files it anyway with a flag.
+
+## 60 minutes. On your own Google Cloud project.
+
+<span class="url">bit.ly/adk-invoices</span>
+
+`[ QR code ]`
+
+---
+
+# Pre-flight did not pass? Three lines and you are with us.
+
+**1 · Join the group** — `________@googlegroups.com` `[ QR ]` — do this first, it takes a few minutes to take effect.
+
+**2 · Put these in your `.env`:**
+
+```
+GOOGLE_CLOUD_PROJECT=adk-sandbox-________
+GOOGLE_CLOUD_LOCATION=global
+```
+
+**3 · Then:**
+
+```
+gcloud auth application-default login
+gcloud auth application-default set-quota-project adk-sandbox-________
+```
+
+### Now clone, and do everything the room does.
+You skip only the three deploy steps. The part that matters is yours.
+
+<!-- Blanks are filled in by hand on the day. Never commit real values. -->
+
+---
+
+<!-- _class: lead -->
+<!-- _footer: 'cp solutions/tools.py invoice_agent/tools.py   ·   cp solutions/agent.py invoice_agent/agent.py' -->
+
+# An agent is three things.
+
+<span class="big">A model. &nbsp; Some tools. &nbsp; An instruction.</span>
+
+Run in a loop until it stops asking for tools.
+
+### There is no fourth thing.
+
+---
+
+# Three things to take away.
+
+**1 · A tool's description is its interface.**
+English is the type signature.
+
+**2 · The interesting behaviour is in the loop, not the model.**
+Nothing clever happened in any single call.
+
+**3 · An agent you cannot watch is an agent you cannot trust.**
+The trace was the product.
+
+---
+
+<!-- _class: lead -->
+
+<span class="url">bit.ly/adk-invoices</span>
+
+`[ QR code ]`
+
+The take-home is in the README.
+
+**Feedback:** `[ TBD — link or QR ]`
