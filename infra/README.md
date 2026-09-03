@@ -92,6 +92,10 @@ gcloud builds submit --tag "$IMAGE" ..
 terraform apply -var "image=$IMAGE"
 ```
 
+The build takes 52 seconds on a fresh project, and what it builds — the
+Dockerfile, the entrypoint, and why the entrypoint is not `adk web` — is
+[docs/DEPLOY.md](../docs/DEPLOY.md).
+
 ## Two things the agent code must honour
 
 - **The Firestore database is named `invoices`, not `(default)`.** The client

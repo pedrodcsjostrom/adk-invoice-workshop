@@ -1,0 +1,14 @@
+.git/
+.venv/
+.claude/
+.terraform/
+infra/
+tests/
+scripts/
+docs/
+samples/
+*.pdf
+*.jpg
+.local_records.jsonl
+__pycache__/
+*.pyc
