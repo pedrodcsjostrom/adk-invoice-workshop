@@ -12,6 +12,7 @@ the run of show has a number for "how long does the first analysis take".
 import base64
 import json
 import mimetypes
+import os
 import sys
 import time
 import urllib.request
@@ -21,11 +22,26 @@ APP = "invoice_agent"
 USER = "probe"
 
 
+def _headers() -> dict:
+    """Auth, only when talking to the service without the proxy.
+
+    Through `gcloud run services proxy` there is nothing to send: the proxy
+    signs each request. Set INVOICE_ID_TOKEN to
+    `$(gcloud auth print-identity-token)` to hit the run.app URL directly,
+    which is what you do when the proxy component will not install.
+    """
+    headers = {"Content-Type": "application/json"}
+    token = os.environ.get("INVOICE_ID_TOKEN")
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
 def _post(path: str, payload: dict, timeout: int = 300) -> dict:
     request = urllib.request.Request(
         f"{BASE}{path}",
         data=json.dumps(payload).encode(),
-        headers={"Content-Type": "application/json"},
+        headers=_headers(),
         method="POST",
     )
     with urllib.request.urlopen(request, timeout=timeout) as response:

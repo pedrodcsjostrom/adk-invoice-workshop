@@ -81,17 +81,52 @@ the run of show should budget from.
 | Project create and billing link | 35s |
 | Enable the eight APIs | 69s |
 | `terraform init` | 6s |
-| First `terraform apply` (nine resources, hello image) | 50s |
+| First `terraform apply` (nine resources, hello image) | 38s |
 | `gcloud builds submit`, cold cache | 52s |
-| Second `terraform apply` (image swap) | not yet measured |
-| Cold start plus first invoice analysis | not yet measured |
+| Second `terraform apply` (image swap) | 29s |
+| Container start to serving, 224 MB pull included | 11s |
+| First invoice analysed, clean | 16s |
+| The rigged invoice, which checks twice | 18s |
+
+Under four minutes from an empty project to a working agent, and half of that
+is the two waits that belong to the pre-flight rather than the room: API
+enablement and the first build.
 
 Local reference points, same image: it builds in 19 seconds with a warm Docker
 cache, weighs 224 MB, and analyses `01-northwind-clean.pdf` in about 17
-seconds against Vertex AI.
+seconds — indistinguishable from Cloud Run, because the time is the model's.
 
-The first apply is quoted from issue #8's run; this session reproduced
-everything through the build.
+Two things the run of show should not read into this. The analysis timings are
+one run each, not a distribution; the ten-run study is in
+[failure-then-retry-tuning.md](research/failure-then-retry-tuning.md). And the
+11-second container start is paid again by every attendee whose service has
+been idle, because `min_instance_count` is 0 — see [COST.md](COST.md) for why
+that trade is the right one.
+
+## What the proving run also found
+
+**`save_invoice_record` writes nowhere durable yet.** The deployed container
+still uses the local JSON Lines store, so a saved record lands in the
+container's `/tmp` and dies with the instance. The Firestore and Cloud Storage
+backend is issue #9. The stack is ready for it: the service account already
+holds `datastore.user` and `storage.objectUser`, and `FIRESTORE_DATABASE` and
+`INVOICE_BUCKET` are already in the container's environment.
+
+**The proxy component really is missing.** On the apt-installed gcloud used
+here, `gcloud run services proxy` is not present and cannot be installed
+without sudo, exactly as issue #8 predicted. This run reached the service
+directly at its `run.app` URL with an identity token instead. That is a
+workaround for a laptop, not the attendee path — it proves the service, not
+the route the room takes — which makes the pre-flight check on issue #12 the
+only thing standing between an attendee and a service they cannot open.
+
+**The service is private and behaves like it.** Unauthenticated requests to
+the `run.app` URL get 403. With an identity token the same request gets 200.
+
+**The failure-then-retry moment survives the deploy.** On Cloud Run, running
+as the stack's service account rather than as a human, the rigged invoice
+produced two `check_invoice_arithmetic` calls before the lookup and the save.
+The demo works where it has to work.
 
 ## Proving it without a browser
 
@@ -105,7 +140,16 @@ python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
 
 It defaults to `http://localhost:8080`, which is where the proxy puts the
 service. Pass a second argument to point it somewhere else, such as a container
-you are running locally.
+you are running locally, or the `run.app` URL:
+
+```bash
+INVOICE_ID_TOKEN="$(gcloud auth print-identity-token)" \
+  python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf \
+  "$(gcloud run services describe invoice-agent --region europe-west1 \
+     --project "$PROJECT_ID" --format='value(status.url)')"
+```
+
+Through the proxy no token is needed, because the proxy signs each request.
 
 ## Running the container on your own machine
 
