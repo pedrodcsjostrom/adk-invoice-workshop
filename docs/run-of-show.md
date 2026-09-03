@@ -1,6 +1,6 @@
 # Run of show — 60 minutes
 
-**Status: local half rehearsed and measured, cloud half still unrun.** Ticket [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11). [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is what turns the budgets into measurements, and what it found so far is in [`research/rehearsal-run.md`](research/rehearsal-run.md) — including a defect in the before-and-after this whole outline is built on.
+**Status: rehearsed end to end, from a clean clone to a shut-down project, including through the proxy.** Ticket [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11). Every number below is now measured rather than budgeted, and what the run found is in [`research/rehearsal-run.md`](research/rehearsal-run.md) ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)) — including a defect in the before-and-after this whole outline is built on.
 
 What goes on the projector and what is said over each running command live in
 [`deck.md`](deck.md) and [`speaker-notes.md`](speaker-notes.md) ([#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)). Five slides, only one of
@@ -100,7 +100,7 @@ Two things at once, and the ordering matters: the command goes first, the talkin
 cd infra && terraform apply -auto-approve
 ```
 
-Thirty-eight seconds, nine resources ([#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8), timed in [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22)). The `image` variable defaults to Google's public hello container, which is exactly what lets this run before any image exists — and is why this step can move here at all. It has **no dependency on anything the attendee types**, which no other cloud step can claim.
+Nine resources, and **budget a minute rather than the forty seconds this used to claim**: #22 measured 38s, #15 measured 58s on a different project ([#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8)). The block has four minutes, so it fits either way, but do not plan the narration around 38. The `image` variable defaults to Google's public hello container, which is exactly what lets this run before any image exists — and is why this step can move here at all. It has **no dependency on anything the attendee types**, which no other cloud step can claim.
 
 `terraform init` is not run here. The pre-flight already ran it, so the provider is on disk rather than coming down over conference wifi forty times at once.
 
@@ -174,9 +174,9 @@ Questions, catch-up, breath. This block exists to be spent.
 ## 0:39 — 0:44 · Collect the deploy (5 min)
 
 - **0:39** Check the build landed, with `gcloud builds describe <id>` or the tail of `gcloud builds list`. A failure surfaces here and the answer is a synchronous rebuild while the room moves on without them.
-- **0:40** Second `terraform apply`. Twenty-nine seconds, one revision replaced, then eleven more before the container is serving.
-- **0:41** `gcloud run services proxy` in a spare terminal, browse localhost. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/18)).
-- **0:42** Upload the rigged invoice once more. Eighteen seconds, and **the same double check appears** — #22 confirmed the demo survives the deploy, running as the stack's service account rather than as a human. Now it writes to Firestore and archives the PDF to Cloud Storage.
+- **0:40** Second `terraform apply`, with `-var "image=$IMAGE"` or it puts the hello container back. Forty-one seconds, one revision replaced, container start included (#15).
+- **0:41** `gcloud run services proxy` in a spare terminal, browse localhost. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/18)). **Proved in #15**: the proxy answers, `/` redirects to the developer UI and `/records` serves on the same port. This was the last unproven step in the kit.
+- **0:42** Upload the rigged invoice once more. Eighteen seconds measured through the proxy, and **the same double check appears**, running as the stack's service account rather than as a human. The record lands in the named Firestore database, the records page renders it flagged as failing, and the original PDF is in the bucket (#15).
 - **0:43** Open the records page on the same service. One deployable, and now they have seen why that claim is true rather than aspirational.
 
 Talk over the waits: why `min_instance_count = 0` is the 86x lever on idle cost, and why the service runs as its own service account rather than the Compute Engine default.
@@ -187,7 +187,7 @@ Talk over the waits: why `min_instance_count = 0` is the 86x lever on idle cost,
 scripts/teardown.sh
 ```
 
-Nobody leaves the room with something running. It has now been run against a live stack ([#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22)), sweeping the Cloud Build staging bucket and shutting the project down.
+Nobody leaves the room with something running. Run for the first time against live resources in [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15): thirty-two seconds, nine resources destroyed, the Cloud Build staging bucket and both its source tarballs swept, and all five "what is left" checks clean. `--delete-project` then shut the project down and printed the `undelete` command. Thirty-two seconds of machine time in a five-minute block, so this is mostly talking.
 
 Then the split from `docs/COST.md`: on the $300 free trial a surprise bill is structurally impossible, because Google closes a trial account rather than upgrading it. Attendees on an existing paid billing account are the ones who need the $5 budget alert, and they are the only ones addressed by that page.
 
@@ -224,8 +224,7 @@ The room will run late. Cut in this order and say nothing about it:
 
 ## Still open
 
-0. **The cloud half has still never been run on this clone.** The apply, the build, the second apply, the records page and `scripts/teardown.sh` against live resources. #22 measured the path on its own project before the gaps landed; nobody has done it since. Everything from 0:14 onward that touches a cloud remains a budget rather than a measurement.
-1. **The proxy path is unproven.** This is now the largest hole. #22 reached the deployed service on its `run.app` URL with an identity token — which proves the service, but **not the route every attendee takes at 0:41**. The `cloud-run-proxy` component is genuinely absent from an apt-installed gcloud, but it **is** installable: `google-cloud-cli-cloud-run-proxy` is in the repo Google already ships, at a version matching the installed gcloud exactly (#12, confirmed again in the rehearsal). It needs a password, which is why it belongs in the pre-flight rather than the hour, and it is not the dead end #8 and #22 both took it for. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
+1. **Two gcloud installations on `PATH`.** Resolved for the proxy itself — #15 opened the deployed agent through `gcloud run services proxy` and all three routes served — but the way it got there introduces a trap. An attendee without a password installs the tarball SDK, which takes `cloud-run-proxy` in nine seconds without root, and then has two gcloud installations. Keep calling the apt one and the component is still missing, for no visible reason. gcloud warns about this; the pre-flight should too. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
 2. **Three terminals** by 0:41: the developer UI, gcloud and Terraform, and the proxy. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them.
 3. **`terraform apply -auto-approve`** assumes the room should not be typing `yes` while listening to an explanation. Fine for a workshop, and worth one sentence about why it is not what you would do at work.
 4. **Whether `adk web` needs a restart** to pick up an edited `INSTRUCTION`. The payoff segment assumes it does. If ADK reloads it, the segment gets smoother and a minute cheaper.

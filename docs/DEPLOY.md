@@ -81,9 +81,10 @@ the run of show should budget from.
 | Project create and billing link | 35s |
 | Enable the eight APIs | 69s |
 | `terraform init` | 6s |
-| First `terraform apply` (nine resources, hello image) | 38s |
-| `gcloud builds submit`, cold cache | 52s |
-| Second `terraform apply` (image swap) | 29s |
+| First `terraform apply` (nine resources, hello image) | 38s (#22), **58s** on a second project (#15) |
+| `gcloud builds submit`, cold cache | 52s (#22), 59s (#15); warm 44s |
+| `gcloud builds submit --async` returns the terminal | 4-8s |
+| Second `terraform apply` (image swap), container start included | 41s |
 | Container start to serving, 224 MB pull included | 11s |
 | First invoice analysed, clean | 16s |
 | The rigged invoice, which checks twice | 18s |
