@@ -1,6 +1,6 @@
 # Run of show — 60 minutes
 
-**Status: settled shape, timings from #22's measured run, unrehearsed as a whole.** Ticket [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11). [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is what turns the budgets into measurements.
+**Status: local half rehearsed and measured, cloud half still unrun.** Ticket [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11). [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is what turns the budgets into measurements, and what it found so far is in [`research/rehearsal-run.md`](research/rehearsal-run.md) — including a defect in the before-and-after this whole outline is built on.
 
 What goes on the projector and what is said over each running command live in
 [`deck.md`](deck.md) and [`speaker-notes.md`](speaker-notes.md) ([#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)). Five slides, only one of
@@ -132,6 +132,8 @@ The teaching line: you are not writing code here, you are writing policy. And th
 
 Prose is also the right thing to be typing under clock pressure. A typo is harmless.
 
+**Do not reword step 5.** It is outside the fence, so it is in the prompt while the gap is still empty, and the rehearsal measured what that costs: when step 5 said "the second check" and "a third time", the agent checked twice on its own in 3 of 12 runs with nothing typed, killing the setup at 0:22 for a quarter of the room ([`research/rehearsal-run.md`](research/rehearsal-run.md)). It now refers only to what the steps above ask for, and that is load-bearing. It is also the teaching line for this block if you want one: **prompt text has no scope** — a gap is only empty if the prose around it does not describe what is missing.
+
 ## 0:30 — 0:31 · Cloud step two: submit the build (1 min)
 
 One command, in the second terminal, and then it is forgotten about:
@@ -222,7 +224,8 @@ The room will run late. Cut in this order and say nothing about it:
 
 ## Still open
 
-1. **The proxy path is unproven.** This is now the largest hole. #22 reached the deployed service on its `run.app` URL with an identity token — which proves the service, but **not the route every attendee takes at 0:41**. The `cloud-run-proxy` component is genuinely absent from an apt-installed gcloud and will not install without sudo, exactly as #8 predicted. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
+0. **The cloud half has still never been run on this clone.** The apply, the build, the second apply, the records page and `scripts/teardown.sh` against live resources. #22 measured the path on its own project before the gaps landed; nobody has done it since. Everything from 0:14 onward that touches a cloud remains a budget rather than a measurement.
+1. **The proxy path is unproven.** This is now the largest hole. #22 reached the deployed service on its `run.app` URL with an identity token — which proves the service, but **not the route every attendee takes at 0:41**. The `cloud-run-proxy` component is genuinely absent from an apt-installed gcloud, but it **is** installable: `google-cloud-cli-cloud-run-proxy` is in the repo Google already ships, at a version matching the installed gcloud exactly (#12, confirmed again in the rehearsal). It needs a password, which is why it belongs in the pre-flight rather than the hour, and it is not the dead end #8 and #22 both took it for. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
 2. **Three terminals** by 0:41: the developer UI, gcloud and Terraform, and the proxy. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them.
 3. **`terraform apply -auto-approve`** assumes the room should not be typing `yes` while listening to an explanation. Fine for a workshop, and worth one sentence about why it is not what you would do at work.
 4. **Whether `adk web` needs a restart** to pick up an edited `INSTRUCTION`. The payoff segment assumes it does. If ADK reloads it, the segment gets smoother and a minute cheaper.
