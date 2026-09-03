@@ -50,7 +50,7 @@ Say out loud, once, the thing that makes the hour make sense: **the failure is d
 
 Then clone, and do exactly what everyone else does.
 
-**They are not behind, and they are not watching.** The sandbox is their model backend, not a service they visit — their agent runs on their own laptop like everyone else's. From 0:05 to 0:39 they are in lockstep: the red pytest, fill-in one, `adk web`, the rigged invoice, the re-read. Nothing from 0:05 to 0:18 touches cloud at all, and persistence defaults to a JSON Lines file on disk, so the only thing they need a project for is the model.
+**They are not behind, and they are not watching.** The sandbox is their model backend, not a service they visit — their agent runs on their own laptop like everyone else's. On every local block they are in lockstep: the red pytest, fill-in one, `adk web`, the rigged invoice, the re-read. Nothing from 0:05 to 0:18 touches cloud at all, and persistence defaults to a JSON Lines file on disk, so the only thing they need a project for is the model.
 
 **Say out loud what they lose, rather than letting them find it.** Three blocks: the Terraform apply at 0:14, the build at 0:30, the collection at 0:39. They have no project of their own and no deploy rights on the sandbox, so during those they watch the front of the room — and that is when they use the deployed sandbox service to see a records page, which their local file cannot render. Everything else in the hour is theirs, including the one thing every attendee must leave having done: their own agent checking the arithmetic twice.
 
