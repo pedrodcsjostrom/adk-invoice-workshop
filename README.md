@@ -88,8 +88,15 @@ copy never silently reverts anything else.
 
 ## The pinned tag
 
-Attendees clone a tag in the pre-flight, the day before, and nobody pulls during
-the hour:
+Attendees clone in the pre-flight, the day before, and nobody pulls during the
+hour. The tag is cut at the tip of the default branch, so the spoken instruction
+is just a clone (#27):
+
+```bash
+git clone https://github.com/pedrodcsjostrom/invoice_analysis.git
+```
+
+To pin explicitly — worth doing if a fix tag was cut after someone cloned:
 
 ```bash
 git clone --branch <tag> --depth 1 https://github.com/pedrodcsjostrom/invoice_analysis.git

@@ -8,9 +8,8 @@
 # the front of the room as a re-clone — never a `git pull` into forty working
 # copies mid-session. Use a `.1`, `.2` suffix for those: workshop-2026-09-17.1
 #
-# The tag is what the attendee clones:
-#
-#   git clone --branch <tag> --depth 1 https://github.com/pedrodcsjostrom/invoice_analysis.git
+# The tag is cut at the tip of the default branch (#27), so the instruction read
+# out in the room is a bare `git clone` and the pin is still exact.
 #
 set -euo pipefail
 
@@ -68,9 +67,14 @@ cat <<EOF
 
 Cut and pushed: $TAG
 
-Put this in the pre-flight, and read it out to anyone arriving cold:
+$TAG is now the tip of main, so this is what goes in the pre-flight and gets
+read out to anyone arriving cold:
+
+  git clone https://github.com/pedrodcsjostrom/invoice_analysis.git
+  cd invoice_analysis && uv sync
+
+To pin explicitly, after a fix tag:
 
   git clone --branch $TAG --depth 1 https://github.com/pedrodcsjostrom/invoice_analysis.git
-  cd invoice_analysis && uv sync
 
 EOF
