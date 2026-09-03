@@ -1,0 +1,98 @@
+[
+  {
+    "supplier_id": "SUP-0001",
+    "name": "Northwind Paper Supplies",
+    "aliases": ["Northwind Paper", "NW Paper Supplies Ltd", "Northwind Paper Supplies AB"],
+    "country": "SE",
+    "currency": "SEK",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0002",
+    "name": "Brightline Office Interiors",
+    "aliases": ["Brightline Interiors", "Brightline Office"],
+    "country": "NL",
+    "currency": "EUR",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0003",
+    "name": "Cascade Cloud Services",
+    "aliases": ["Cascade Cloud", "Cascade Cloud Services Inc."],
+    "country": "US",
+    "currency": "USD",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0004",
+    "name": "Halden Industrial Fasteners",
+    "aliases": ["Halden Fasteners", "Halden Industrial AS", "Halden Industrial Fasteners AS"],
+    "country": "NO",
+    "currency": "NOK",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0005",
+    "name": "Vertex Packaging Group",
+    "aliases": ["Vertex Packaging", "Vertex Pack Group Ltd", "Vertex Packaging Group Ltd"],
+    "country": "GB",
+    "currency": "GBP",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0006",
+    "name": "Meridian Logistics Partners",
+    "aliases": ["Meridian Logistics", "Meridian Log. Partners GmbH", "Meridian Logistics Partners GmbH"],
+    "country": "DE",
+    "currency": "EUR",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0007",
+    "name": "Sablefield Catering",
+    "aliases": ["Sablefield Catering Ltd", "Sablefield"],
+    "country": "IE",
+    "currency": "EUR",
+    "status": "on_hold"
+  },
+  {
+    "supplier_id": "SUP-0008",
+    "name": "Kestrel Analytics",
+    "aliases": ["Kestrel Analytics LLC", "Kestrel Data Analytics"],
+    "country": "US",
+    "currency": "USD",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0009",
+    "name": "Almendra Suministros Industriales",
+    "aliases": ["Almendra Suministros", "Almendra S.L.", "Almendra Suministros Industriales S.L."],
+    "country": "ES",
+    "currency": "EUR",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0010",
+    "name": "Ridgeway Facilities Management",
+    "aliases": ["Ridgeway Facilities", "Ridgeway FM"],
+    "country": "GB",
+    "currency": "GBP",
+    "status": "active"
+  },
+  {
+    "supplier_id": "SUP-0011",
+    "name": "Polaris Electrical Wholesale",
+    "aliases": ["Polaris Electrical", "Polaris Elec. Wholesale Oy"],
+    "country": "FI",
+    "currency": "EUR",
+    "status": "on_hold"
+  },
+  {
+    "supplier_id": "SUP-0012",
+    "name": "Tallgrass Print & Signage",
+    "aliases": ["Tallgrass Print", "Tallgrass Signage", "Tallgrass Print and Signage"],
+    "country": "US",
+    "currency": "USD",
+    "status": "active"
+  }
+]

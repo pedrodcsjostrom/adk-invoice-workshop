@@ -1,0 +1,110 @@
+[
+  {
+    "file": "01-northwind-clean.pdf",
+    "purpose": "Clean single page. Registry hit on an alias. Validation passes.",
+    "supplier_printed": "Northwind Paper Supplies AB",
+    "invoice_number": "NW-2026-0412",
+    "invoice_date": "2026-01-14",
+    "currency": "SEK",
+    "line_count": 4,
+    "line_sum": 6917.4,
+    "stated_total": 6917.4,
+    "validation_passes": true
+  },
+  {
+    "file": "02-brightline-clean.pdf",
+    "purpose": "Clean single page, different visual template. Registry hit on an alias.",
+    "supplier_printed": "Brightline Office Interiors",
+    "invoice_number": "BOI/2026/0087",
+    "invoice_date": "2026-02-03",
+    "currency": "EUR",
+    "line_count": 3,
+    "line_sum": 8162.0,
+    "stated_total": 8162.0,
+    "validation_passes": true
+  },
+  {
+    "file": "03-cascade-clean.pdf",
+    "purpose": "Clean single page, serif template, fractional quantities. Registry hit on an alias.",
+    "supplier_printed": "Cascade Cloud Services Inc.",
+    "invoice_number": "CCS-88214",
+    "invoice_date": "2026-02-28",
+    "currency": "USD",
+    "line_count": 5,
+    "line_sum": 3288.9,
+    "stated_total": 3288.9,
+    "validation_passes": true
+  },
+  {
+    "file": "04-halden-rigged-total.pdf",
+    "purpose": "The rigged invoice. Line arithmetic is correct, the stated total is 1,400.00 too high. Irreconcilable from the document alone.",
+    "supplier_printed": "Halden Industrial Fasteners AS",
+    "invoice_number": "HIF-2026-1155",
+    "invoice_date": "2026-03-09",
+    "currency": "NOK",
+    "line_count": 5,
+    "line_sum": 11271.0,
+    "stated_total": 12671.0,
+    "validation_passes": false
+  },
+  {
+    "file": "05-vertex-missable-line.pdf",
+    "purpose": "Recoverable variant. The pallet deposit line sits below the table rule in small print; miss it and the total does not reconcile, re-read and it does.",
+    "supplier_printed": "Vertex Packaging Group Ltd",
+    "invoice_number": "VPG-046-2026",
+    "invoice_date": "2026-03-17",
+    "currency": "GBP",
+    "line_count": 4,
+    "line_sum": 2750.0,
+    "stated_total": 2750.0,
+    "validation_passes": true
+  },
+  {
+    "file": "06-meridian-multipage.pdf",
+    "purpose": "Three pages, 23 line items, total only on the last page.",
+    "supplier_printed": "Meridian Logistics Partners GmbH",
+    "invoice_number": "MLP-2026-Q1-0033",
+    "invoice_date": "2026-04-02",
+    "currency": "EUR",
+    "line_count": 23,
+    "line_sum": 27251.14,
+    "stated_total": 27251.14,
+    "validation_passes": true
+  },
+  {
+    "file": "07-tallgrass-scan.jpg",
+    "purpose": "Photographed page rather than a PDF: rotated, grainy, unevenly lit, JPEG artifacts.",
+    "supplier_printed": "Tallgrass Print & Signage",
+    "invoice_number": "TG-5591",
+    "invoice_date": "2026-02-19",
+    "currency": "USD",
+    "line_count": 4,
+    "line_sum": 1516.0,
+    "stated_total": 1516.0,
+    "validation_passes": true
+  },
+  {
+    "file": "08-almendra-spanish.pdf",
+    "purpose": "Spanish layout and labels. Tax is inside the unit prices, no separate IVA row.",
+    "supplier_printed": "Almendra Suministros Industriales S.L.",
+    "invoice_number": "FRA-2026-00291",
+    "invoice_date": "2026-03-24",
+    "currency": "EUR",
+    "line_count": 5,
+    "line_sum": 1944.9,
+    "stated_total": 1944.9,
+    "validation_passes": true
+  },
+  {
+    "file": "09-unknown-supplier.pdf",
+    "purpose": "Supplier absent from the vendor registry. Lookup misses and the record saves with a null supplier_id.",
+    "supplier_printed": "Fairhaven Instrument Repair",
+    "invoice_number": "FIR-2026-0074",
+    "invoice_date": "2026-04-11",
+    "currency": "GBP",
+    "line_count": 3,
+    "line_sum": 950.2,
+    "stated_total": 950.2,
+    "validation_passes": true
+  }
+]
