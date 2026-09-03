@@ -1,0 +1,6 @@
+# Copy to terraform.tfvars and set your own project.
+project_id = "your-project-id"
+
+# Everything else has a working default. Change region only if you have a
+# reason to; model_location is not a region and should stay global.
+# region = "europe-west1"
