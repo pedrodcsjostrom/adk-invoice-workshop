@@ -56,6 +56,22 @@ different ways.
 If `gcloud` came from snap, it cannot take components at all. Remove it and
 install the tarball SDK from the link in the table.
 
+**No password on this machine?** The tarball SDK is the way out, and it is
+quicker than it sounds: it unpacks into your home directory and takes the
+component in about nine seconds, with no root at all.
+
+```bash
+curl -sSLO https://dl.google.com/dl/cloudsdk/channels/rapid/downloads/google-cloud-cli-linux-x86_64.tar.gz
+tar -xzf google-cloud-cli-linux-x86_64.tar.gz
+./google-cloud-sdk/bin/gcloud components install cloud-run-proxy
+```
+
+It shares your existing sign-in, so there is nothing to log in to again. The one
+trap, and gcloud will warn you about it: you now have **two** installations, and
+the old one still has no proxy. Put the new `google-cloud-sdk/bin` first on your
+`PATH`, or call it by full path every time. Getting this wrong looks exactly
+like the component failing to install.
+
 ## 2. Make a project, and link billing
 
 One project, used only for this workshop, so that deleting it afterwards costs
