@@ -6,25 +6,22 @@
 #   scripts/sandbox.sh              create the project, deploy the agent, open it up
 #   scripts/sandbox.sh --teardown   shut the whole project down
 #
-# Run it the MORNING OF the workshop, not before, and tear it down the same
-# day. Two reasons, and both are load-bearing:
+# What the sandbox is: one Cloud Run service running the finished agent, open
+# to any signed-in Google account, reached with `gcloud run services proxy`.
+# A cold attendee uses Peter's deployed agent. They do not get a project of
+# their own, and they cannot run the agent locally — see the note on the grants
+# below for why Google makes that impossible, and what it costs the hour.
 #
-#   1. This project grants roles/aiplatform.user to allAuthenticatedUsers —
-#      every Google account on earth. That is what lets a cold attendee run
-#      `adk web` on their own laptop against a project they do not own, which
-#      is the only way they reach the hour's one mandatory exercise. It is also
-#      an open Gemini budget to anyone who learns the project id.
-#   2. The repo is public (#27), so the project id cannot live in it. The id is
-#      generated with a random suffix here, printed once, and belongs on a
-#      slide and nowhere else.
-#
-# A same-day project with a random id is what makes that grant a reasonable
-# trade rather than a standing liability.
+# Run it the MORNING OF the workshop, not before, and tear it down the same day.
+# The service answers to every Google account on earth, and every invocation
+# spends Gemini tokens on Peter's billing account. The repo is public (#27), so
+# the project id cannot live in it either: the id is generated with a random
+# suffix here, printed once, and belongs on a slide and nowhere else.
 #
 # Requires: gcloud authenticated as the account that owns the billing account,
 # terraform, and an open billing account. The account must be OUTSIDE any
-# organization — an org policy blocks the allAuthenticatedUsers grants and this
-# script will fail at that step (#18).
+# organization — inside one, domain restricted sharing blocks the
+# allAuthenticatedUsers grants and this script fails at that step (#18).
 
 set -euo pipefail
 
@@ -138,25 +135,25 @@ gcloud run services add-iam-policy-binding "$SERVICE" \
   --member=allAuthenticatedUsers --role=roles/run.viewer >/dev/null
 ok "run.invoker + run.viewer on $SERVICE"
 
-# Running `adk web` on their own laptop. This is the grant that matters most:
-# the hour's one mandatory exercise is typing the re-read and watching their
-# own agent check the arithmetic twice (#11), and the deployed sandbox runs
-# Peter's image, so it can never deliver that. Only local execution can, and
-# local execution needs a project with Vertex on it.
-gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-  --member=allAuthenticatedUsers --role=roles/aiplatform.user \
-  --condition=None >/dev/null
-# The quota project on their ADC. Vertex bills the project named by
-# x-goog-user-project, and using a project as a quota project needs this (#12).
-gcloud projects add-iam-policy-binding "$PROJECT_ID" \
-  --member=allAuthenticatedUsers --role=roles/serviceusage.serviceUsageConsumer \
-  --condition=None >/dev/null
-ok "aiplatform.user + serviceUsageConsumer, project-wide"
-
-# Deliberately NOT granted: datastore.user and storage.objectUser. With
-# FIRESTORE_DATABASE unset, the store writes JSON Lines to the attendee's own
-# disk (#9), so the local path needs no cloud storage at all — and every role
-# left ungranted is one less thing an open project can be used for.
+# What is NOT granted, because Google does not allow it. Opening Vertex to an
+# unknown Google account would need roles/aiplatform.user on the PROJECT, and
+# Cloud Resource Manager refuses the member type outright:
+#
+#   PROJECT_SET_IAM_DISALLOWED_MEMBER_TYPE
+#   Policy members must be prefixed of the form '<type>:<value>', where <type>
+#   is 'domain', 'group', 'serviceAccount', or 'user'.
+#
+# This has nothing to do with organization policy — it is true on this org-free
+# project. allUsers and allAuthenticatedUsers are accepted on a *resource*
+# policy, like the Cloud Run service above, and refused on a *project* policy.
+#
+# The consequence is a hole this script cannot close. A cold attendee reaches
+# the deployed agent, but cannot run `adk web` against this project, so they
+# never run an agent of their own — and the hour's one mandatory exercise (#11)
+# is watching *your own* agent check the arithmetic twice. Closing it needs a
+# named identity: Peter adding each cold arrival by email during the session, or
+# a group prepared in advance. That is a decision, not a provisioning step; it
+# is left as an open question on #13.
 
 # --- 5. the handout ---------------------------------------------------------
 say "The handout — put this on a slide, not in the repo"
@@ -166,21 +163,16 @@ cat <<HANDOUT
   Region:   $REGION
   Service:  $SERVICE
 
-  No credentials. Sign in with any Google account:
+  No credentials. Sign in with any Google account, then reach the agent:
 
     gcloud auth login
-    gcloud auth application-default login
-    export GOOGLE_CLOUD_PROJECT=$PROJECT_ID
-    export GOOGLE_GENAI_USE_ENTERPRISE=TRUE
-    export GOOGLE_CLOUD_LOCATION=global
-
-  Then run everything the room runs, locally:
-
-    adk web
-
-  And to see the finished agent already deployed:
-
     gcloud run services proxy $SERVICE --region $REGION --project $PROJECT_ID
+
+  Open http://localhost:8080 and use the agent there.
+
+  The proxy needs one component, which is a separate package on apt gcloud:
+
+    sudo apt-get install google-cloud-cli-cloud-run-proxy
 
 HANDOUT
 

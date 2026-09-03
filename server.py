@@ -15,6 +15,8 @@ import os
 import uvicorn
 from google.adk.cli.fast_api import get_fast_api_app
 
+from invoice_agent.records import router
+
 # The directory holding agent packages, not the package itself.
 AGENTS_DIR = os.path.dirname(os.path.abspath(__file__))
 
@@ -29,6 +31,11 @@ app = get_fast_api_app(
     host="0.0.0.0",
     port=int(os.environ.get("PORT", "8080")),
 )
+
+# The docstring above promised this and the module never did it: without the
+# include, the deployed container serves the developer UI and returns 404 for
+# /records. Added after the sandbox deploy (#13) hit exactly that.
+app.include_router(router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
