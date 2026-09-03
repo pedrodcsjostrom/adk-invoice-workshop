@@ -1,6 +1,6 @@
 # Run of show — 60 minutes
 
-**Status: settled shape, unrehearsed timings.** Ticket [#11](https://github.com/pedrodcsjostrom/invoice_analysis/issues/11). Timings are budgets, not measurements; [#15](https://github.com/pedrodcsjostrom/invoice_analysis/issues/15) is what turns them into measurements.
+**Status: settled shape, timings from #22's measured run, unrehearsed as a whole.** Ticket [#11](https://github.com/pedrodcsjostrom/invoice_analysis/issues/11). [#15](https://github.com/pedrodcsjostrom/invoice_analysis/issues/15) is what turns the budgets into measurements.
 
 ## The one thing
 
@@ -14,11 +14,21 @@ Two decisions carry the whole plan.
 
 **Local first, cloud second.** The store falls back to a JSON Lines file when `FIRESTORE_DATABASE` is unset ([#9](https://github.com/pedrodcsjostrom/invoice_analysis/issues/9)), so nothing before 0:39 needs a working GCP project. The payoff moment is therefore out of reach of every cloud failure mode.
 
-**The cloud work starts early and is collected late.** The deploy is not one block at the end. It is split in three: the first Terraform apply at 0:14, the container build submitted asynchronously at 0:30, and the collection at 0:39. The build bakes for nine minutes across the payoff run and the slack, instead of being watched for five.
+**The cloud work starts early and is collected late.** The deploy is not one block at the end. It splits in three: the first Terraform apply at 0:14, the container build submitted asynchronously at 0:30, and the collection at 0:39.
 
-The prize is not the five minutes saved. It is that a nine-minute bake window makes the hour robust to a build duration nobody has measured yet ([#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22)). At the old shape, a seven-minute build broke the plan. At this one, it costs nothing.
+The machine time is small and now known. [#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22) measured the whole path on a project created empty for the purpose:
 
-The objection this overrides is that an early cloud step puts a cloud failure before the payoff. It does, and that turns out to be an argument in favour: because the payoff is local and independent, an early failure is *detected* early and *costs* nothing. An attendee whose apply fails at 0:14 has twenty minutes of runway to divert to the sandbox. The same failure discovered at 0:39 has none.
+| Step | Measured |
+| --- | --- |
+| First apply, hello container | 38s |
+| `gcloud builds submit`, cold cache | 52s |
+| Second apply, image swap | 29s |
+| Container start to serving | 11s |
+| Rigged invoice on Cloud Run | 18s |
+
+So the split is not rescuing a plan from a five-minute build — it buys about ninety seconds out of the tail, and that is the smaller half of the reason. **The larger half is that 0:14 becomes a diversion point.** The apply depends on nothing the attendee types, so an attendee whose project is broken finds out with twenty minutes of runway to reach the sandbox. The same failure discovered at 0:39 has none. That argument holds whatever the build costs.
+
+This also inverts the objection the draft was rejected on. An early cloud step does put a cloud failure before the payoff — and because the payoff is entirely local, that failure is *detected* early and *costs* nothing.
 
 Hands-on time: roughly 35 of the 60 minutes.
 
@@ -68,7 +78,7 @@ Two things at once, and the ordering matters: the command goes first, the talkin
 cd terraform && terraform apply -auto-approve
 ```
 
-Nine resources, about 50 seconds ([#8](https://github.com/pedrodcsjostrom/invoice_analysis/issues/8)). The `image` variable defaults to Google's public hello container, which is exactly what lets this run before any image exists — and is why this step can move here at all. It has **no dependency on anything the attendee types**, which no other cloud step can claim.
+Thirty-eight seconds, nine resources ([#8](https://github.com/pedrodcsjostrom/invoice_analysis/issues/8), timed in [#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22)). The `image` variable defaults to Google's public hello container, which is exactly what lets this run before any image exists — and is why this step can move here at all. It has **no dependency on anything the attendee types**, which no other cloud step can claim.
 
 `terraform init` is not run here. The pre-flight already ran it, so the provider is on disk rather than coming down over conference wifi forty times at once.
 
@@ -100,17 +110,17 @@ Prose is also the right thing to be typing under clock pressure. A typo is harml
 
 ## 0:30 — 0:31 · Cloud step two: submit the build (1 min)
 
-One command, in the second terminal, and then it is forgotten about for nine minutes:
+One command, in the second terminal, and then it is forgotten about:
 
 ```
 gcloud builds submit --async
 ```
 
-**`--async` is load-bearing.** Without it the build streams logs and holds the terminal hostage through the best segment of the hour. With it the command returns immediately with a build id.
+Fifty-two seconds on a cold cache, so it is finished well before anyone looks at it again. `--async` is still the right flag: without it the command streams build logs and holds the terminal through the best segment of the hour, for no benefit.
 
-**Why the build lands exactly here** and not at 0:14 with the apply: the image is built from the agent source, so a build submitted before this moment ships an agent with an unimplemented arithmetic tool and no re-read steps. It would deploy cleanly and then fail in front of everyone at 0:41. This is the earliest minute at which the source is the finished source.
+**Why the build lands exactly here** and not at 0:14 with the apply: the image is built from the agent source, so a build submitted before this moment ships an agent with an unimplemented arithmetic tool and no re-read steps. It would deploy cleanly and then fail in front of everyone at 0:41. This is the earliest minute at which the source is the finished source, and that constraint — not the clock — is what pins it here.
 
-The cost of `--async` is that a failed build is silent until 0:39. Accepted, because the collection step surfaces it, the payoff has already happened by then, and the fallback is a synchronous rebuild that costs the deploy segment and nothing else.
+The cost of `--async` is that a failed build is silent until 0:39. Accepted: the collection step surfaces it, the payoff has already happened, and a synchronous rebuild costs the deploy segment and nothing else.
 
 ## 0:31 — 0:36 · The payoff (5 min)
 
@@ -133,29 +143,31 @@ Two checks with the re-read between them, then it saves anyway with every number
 
 ## 0:36 — 0:39 · Slack (3 min)
 
-Questions, catch-up, breath. This block exists to be spent — but it is also the tail of the bake window, so cutting it short pulls the collection forward into a build that may not be finished. Spend it before skipping it.
+Questions, catch-up, breath. This block exists to be spent.
 
-## 0:39 — 0:46 · Collect the deploy (7 min)
+## 0:39 — 0:44 · Collect the deploy (5 min)
 
-- **0:39** Check the build landed: `gcloud builds describe <id>`, or read the tail of `gcloud builds list`. A failure surfaces here, and the answer is a synchronous rebuild while the room moves on without them.
-- **0:40** Second `terraform apply`, this time with the built image. Fast — one revision replaced.
-- **0:42** `gcloud run services proxy` in a spare terminal, browse localhost. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/invoice_analysis/issues/18)).
-- **0:43** Upload the rigged invoice once more. Same agent, same trace, now writing to Firestore and archiving the PDF to Cloud Storage.
-- **0:45** Open the records page on the same service. One deployable, and now they have seen why that claim is true rather than aspirational.
+- **0:39** Check the build landed, with `gcloud builds describe <id>` or the tail of `gcloud builds list`. A failure surfaces here and the answer is a synchronous rebuild while the room moves on without them.
+- **0:40** Second `terraform apply`. Twenty-nine seconds, one revision replaced, then eleven more before the container is serving.
+- **0:41** `gcloud run services proxy` in a spare terminal, browse localhost. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/invoice_analysis/issues/18)).
+- **0:42** Upload the rigged invoice once more. Eighteen seconds, and **the same double check appears** — #22 confirmed the demo survives the deploy, running as the stack's service account rather than as a human. Now it writes to Firestore and archives the PDF to Cloud Storage.
+- **0:43** Open the records page on the same service. One deployable, and now they have seen why that claim is true rather than aspirational.
 
 Talk over the waits: why `min_instance_count = 0` is the 86x lever on idle cost, and why the service runs as its own service account rather than the Compute Engine default.
 
-## 0:46 — 0:51 · Teardown, live, together (5 min)
+## 0:44 — 0:49 · Teardown, live, together (5 min)
 
 ```
 scripts/teardown.sh
 ```
 
-Nobody leaves the room with something running. Then the split from `docs/COST.md`: on the $300 free trial a surprise bill is structurally impossible, because Google closes a trial account rather than upgrading it. Attendees on an existing paid billing account are the ones who need the $5 budget alert, and they are the only ones addressed by that page.
+Nobody leaves the room with something running. It has now been run against a live stack ([#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22)), sweeping the Cloud Build staging bucket and shutting the project down.
+
+Then the split from `docs/COST.md`: on the $300 free trial a surprise bill is structurally impossible, because Google closes a trial account rather than upgrading it. Attendees on an existing paid billing account are the ones who need the $5 budget alert, and they are the only ones addressed by that page.
 
 This segment is not cuttable. It is compressible to sixty seconds of "run this now, I will wait."
 
-## 0:51 — 0:58 · What that was, and where it goes (7 min)
+## 0:49 — 0:57 · What that was, and where it goes (8 min)
 
 Three points, no slides needed:
 
@@ -165,7 +177,7 @@ Three points, no slides needed:
 
 Then the take-home: what to change first, and what this toy is missing before it is real.
 
-## 0:58 — 1:00 · Questions and the URL (2 min)
+## 0:57 — 1:00 · Questions and the URL (3 min)
 
 Repo URL on screen and recitable. Feedback ask.
 
@@ -175,23 +187,24 @@ Repo URL on screen and recitable. Feedback ask.
 
 The room will run late. Cut in this order and say nothing about it:
 
-1. **Slack at 0:36** (3 min), but only once the build has landed. Cutting it early shortens the bake window, which is the one saving that pays for itself elsewhere.
-2. **The cloud run of the rigged invoice at 0:43** (2 min). Prove the service answers and move on; they already did the real thing locally.
-3. **The wrap-up at 0:51** compresses from 7 minutes to 3. The take-home is in the README.
-4. **Their own records page at 0:45** (1 min). Show Peter's instead.
+1. **Slack at 0:36** (3 min). It exists to be spent.
+2. **The cloud run of the rigged invoice at 0:42** (2 min). Prove the service answers and move on; they already did the real thing locally.
+3. **The wrap-up at 0:49** compresses from 8 minutes to 3. The take-home is in the README.
+4. **Their own records page at 0:43** (1 min). Show Peter's instead.
 5. **The clean-invoice run at 0:18** (2 min). Go straight to the rigged one. Costs the contrast, which is a real loss.
 
-**Never cut:** fill-in two, the payoff run, and teardown. If the collection will not fit before 0:46, the collection is what gets abandoned — not the centerpiece and not the teardown. An attendee who leaves with a built image and no deployed revision has a two-command take-home, which is a decent consolation prize and worth saying out loud.
+**Never cut:** fill-in two, the payoff run, and teardown. If the collection will not fit before 0:44, the collection is what gets abandoned — not the centerpiece and not the teardown. An attendee who leaves with a built image and no deployed revision has a two-command take-home, which is a decent consolation prize and worth saying out loud.
 
 ## Still open
 
-1. **Nobody has measured the build.** The nine-minute bake window is generous enough that this is no longer load-bearing, but [#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22) still owes a number, and it owes confirmation that `gcloud builds submit --async` works against this kit and returns a usable id.
-2. **Three terminals** by 0:42: the developer UI, gcloud and Terraform, and the proxy. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them.
+1. **The proxy path is unproven.** This is now the largest hole. #22 reached the deployed service on its `run.app` URL with an identity token — which proves the service, but **not the route every attendee takes at 0:41**. The `cloud-run-proxy` component is genuinely absent from an apt-installed gcloud and will not install without sudo, exactly as #8 predicted. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
+2. **Three terminals** by 0:41: the developer UI, gcloud and Terraform, and the proxy. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them.
 3. **`terraform apply -auto-approve`** assumes the room should not be typing `yes` while listening to an explanation. Fine for a workshop, and worth one sentence about why it is not what you would do at work.
 4. **Whether `adk web` needs a restart** to pick up an edited `INSTRUCTION`. The payoff segment assumes it does. If ADK reloads it, the segment gets smoother and a minute cheaper.
+5. **The measured numbers came from one machine on good wifi**, in `europe-west1`. Conference wifi is the variable none of them account for, and the build's 52 seconds includes a source upload.
 
 ## Consequences for other tickets
 
-- **[#12 pre-flight](https://github.com/pedrodcsjostrom/invoice_analysis/issues/12)** — four additions. Run `terraform init` so the provider is on disk, now load-bearing rather than a nicety, because the apply at 0:14 has no room for a download. Run `adk web` once and dismiss the telemetry consent dialog, so the room does not hit it forty times at once. Run the gap test so the red result is familiar. And warn about three terminals.
-- **[#22 containerize](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22)** — confirm `--async` submission and that the returned build id is what an attendee checks later; make sure the source upload ignores `.adk/session.db` and the local JSON Lines store, since both appear in the agent directory before the build is submitted; and still report the wall clock, against a nine-minute budget rather than five.
-- **[#15 rehearsal](https://github.com/pedrodcsjostrom/invoice_analysis/issues/15)** — rehearse against this file. The two things to test under pressure are the cut list and the bake window: whether the build is genuinely finished by 0:39 on conference wifi.
+- **[#12 pre-flight](https://github.com/pedrodcsjostrom/invoice_analysis/issues/12)** — four additions. Run `terraform init` so the provider is on disk, now load-bearing rather than a nicety, because the apply at 0:14 has no room for a download. Run `adk web` once and dismiss the telemetry consent dialog, so the room does not hit it forty times at once. Run the gap test so the red result is familiar. And warn about three terminals. The `cloud-run-proxy` check inherited from #8 is the single most important item on the list.
+- **[#15 rehearsal](https://github.com/pedrodcsjostrom/invoice_analysis/issues/15)** — rehearse against this file, through the proxy, on the worst wifi available. The two things to test under pressure are the cut list and whether an attendee can actually open the service at 0:41.
+- **[#32 speaker materials](https://github.com/pedrodcsjostrom/invoice_analysis/issues/32)** — four windows need prepared narration rather than improvisation: the apply at 0:14, the rigged run at 0:31, the build check at 0:39 and the second apply at 0:40.
