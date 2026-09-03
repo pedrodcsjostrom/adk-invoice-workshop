@@ -1,6 +1,6 @@
 # Run of show — 60 minutes
 
-**Status: settled shape, timings from #22's measured run, unrehearsed as a whole.** Ticket [#11](https://github.com/pedrodcsjostrom/invoice_analysis/issues/11). [#15](https://github.com/pedrodcsjostrom/invoice_analysis/issues/15) is what turns the budgets into measurements.
+**Status: settled shape, timings from #22's measured run, unrehearsed as a whole.** Ticket [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11). [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is what turns the budgets into measurements.
 
 What goes on the projector and what is said over each running command live in
 [`deck.md`](deck.md) and [`speaker-notes.md`](speaker-notes.md) ([#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)). Five slides, only one of
@@ -16,11 +16,11 @@ Locally counts. Deploying does not count. If the room is on fire at 0:30, this i
 
 Two decisions carry the whole plan.
 
-**Local first, cloud second.** The store falls back to a JSON Lines file when `FIRESTORE_DATABASE` is unset ([#9](https://github.com/pedrodcsjostrom/invoice_analysis/issues/9)), so nothing before 0:39 needs a working GCP project. The payoff moment is therefore out of reach of every cloud failure mode.
+**Local first, cloud second.** The store falls back to a JSON Lines file when `FIRESTORE_DATABASE` is unset ([#9](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/9)), so nothing before 0:39 needs a working GCP project. The payoff moment is therefore out of reach of every cloud failure mode.
 
 **The cloud work starts early and is collected late.** The deploy is not one block at the end. It splits in three: the first Terraform apply at 0:14, the container build submitted asynchronously at 0:30, and the collection at 0:39.
 
-The machine time is small and now known. [#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22) measured the whole path on a project created empty for the purpose:
+The machine time is small and now known. [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22) measured the whole path on a project created empty for the purpose:
 
 | Step | Measured |
 | --- | --- |
@@ -100,7 +100,7 @@ Two things at once, and the ordering matters: the command goes first, the talkin
 cd infra && terraform apply -auto-approve
 ```
 
-Thirty-eight seconds, nine resources ([#8](https://github.com/pedrodcsjostrom/invoice_analysis/issues/8), timed in [#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22)). The `image` variable defaults to Google's public hello container, which is exactly what lets this run before any image exists — and is why this step can move here at all. It has **no dependency on anything the attendee types**, which no other cloud step can claim.
+Thirty-eight seconds, nine resources ([#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8), timed in [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22)). The `image` variable defaults to Google's public hello container, which is exactly what lets this run before any image exists — and is why this step can move here at all. It has **no dependency on anything the attendee types**, which no other cloud step can claim.
 
 `terraform init` is not run here. The pre-flight already ran it, so the provider is on disk rather than coming down over conference wifi forty times at once.
 
@@ -116,11 +116,11 @@ Arriving here rather than at 0:01 costs nothing on access: the join was measured
 adk web
 ```
 
-Warn the room before they run it, because forty laptops hit this simultaneously: **a telemetry consent dialog and two alarming-but-harmless warnings** ([#4](https://github.com/pedrodcsjostrom/invoice_analysis/issues/4)). If the pre-flight makes them run `adk web` once the day before, this cost disappears — see the consequences below.
+Warn the room before they run it, because forty laptops hit this simultaneously: **a telemetry consent dialog and two alarming-but-harmless warnings** ([#4](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/4)). If the pre-flight makes them run `adk web` once the day before, this cost disappears — see the consequences below.
 
 Upload a clean invoice first. Eleven to twenty seconds. Read the tool trace together as a group: extraction, one call to `check_invoice_arithmetic`, `lookup_supplier`, `save_invoice_record`.
 
-Then upload `04-halden-rigged-total.pdf`. It fails the check once and saves the record flagged. Correct behaviour, and completely invisible — **it never went back to the document.** Point at exactly that absence. It is the setup for the next five minutes, and it is why fill-in two lands here and not at the start ([#10](https://github.com/pedrodcsjostrom/invoice_analysis/issues/10)).
+Then upload `04-halden-rigged-total.pdf`. It fails the check once and saves the record flagged. Correct behaviour, and completely invisible — **it never went back to the document.** Point at exactly that absence. It is the setup for the next five minutes, and it is why fill-in two lands here and not at the start ([#10](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/10)).
 
 Seven minutes because this is where first-launch friction lives: the port, the dialog, the warnings, the first upload.
 
@@ -150,7 +150,7 @@ The cost of `--async` is that a failed build is silent until 0:39. Accepted: the
 
 Restart `adk web`, upload `04-halden-rigged-total.pdf` again.
 
-Twenty-seven to thirty-four seconds, roughly double a clean run ([#7](https://github.com/pedrodcsjostrom/invoice_analysis/issues/7)). **Budget thirty seconds of narration** to fill it, and the narration is: what the model is doing right now, and why the second identical check is a design decision rather than a wasted call.
+Twenty-seven to thirty-four seconds, roughly double a clean run ([#7](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/7)). **Budget thirty seconds of narration** to fill it, and the narration is: what the model is doing right now, and why the second identical check is a design decision rather than a wasted call.
 
 Then read the trace together:
 
@@ -173,7 +173,7 @@ Questions, catch-up, breath. This block exists to be spent.
 
 - **0:39** Check the build landed, with `gcloud builds describe <id>` or the tail of `gcloud builds list`. A failure surfaces here and the answer is a synchronous rebuild while the room moves on without them.
 - **0:40** Second `terraform apply`. Twenty-nine seconds, one revision replaced, then eleven more before the container is serving.
-- **0:41** `gcloud run services proxy` in a spare terminal, browse localhost. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/invoice_analysis/issues/18)).
+- **0:41** `gcloud run services proxy` in a spare terminal, browse localhost. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/18)).
 - **0:42** Upload the rigged invoice once more. Eighteen seconds, and **the same double check appears** — #22 confirmed the demo survives the deploy, running as the stack's service account rather than as a human. Now it writes to Firestore and archives the PDF to Cloud Storage.
 - **0:43** Open the records page on the same service. One deployable, and now they have seen why that claim is true rather than aspirational.
 
@@ -185,7 +185,7 @@ Talk over the waits: why `min_instance_count = 0` is the 86x lever on idle cost,
 scripts/teardown.sh
 ```
 
-Nobody leaves the room with something running. It has now been run against a live stack ([#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22)), sweeping the Cloud Build staging bucket and shutting the project down.
+Nobody leaves the room with something running. It has now been run against a live stack ([#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22)), sweeping the Cloud Build staging bucket and shutting the project down.
 
 Then the split from `docs/COST.md`: on the $300 free trial a surprise bill is structurally impossible, because Google closes a trial account rather than upgrading it. Attendees on an existing paid billing account are the ones who need the $5 budget alert, and they are the only ones addressed by that page.
 
@@ -230,6 +230,6 @@ The room will run late. Cut in this order and say nothing about it:
 
 ## Consequences for other tickets
 
-- **[#12 pre-flight](https://github.com/pedrodcsjostrom/invoice_analysis/issues/12)** — four additions. Run `terraform init` so the provider is on disk, now load-bearing rather than a nicety, because the apply at 0:14 has no room for a download. Run `adk web` once and dismiss the telemetry consent dialog, so the room does not hit it forty times at once. Run the gap test so the red result is familiar. And warn about three terminals. The `cloud-run-proxy` check inherited from #8 is the single most important item on the list.
-- **[#15 rehearsal](https://github.com/pedrodcsjostrom/invoice_analysis/issues/15)** — rehearse against this file, through the proxy, on the worst wifi available. The two things to test under pressure are the cut list and whether an attendee can actually open the service at 0:41.
-- **[#32 speaker materials](https://github.com/pedrodcsjostrom/invoice_analysis/issues/32)** — four windows need prepared narration rather than improvisation: the apply at 0:14, the rigged run at 0:31, the build check at 0:39 and the second apply at 0:40.
+- **[#12 pre-flight](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/12)** — four additions. Run `terraform init` so the provider is on disk, now load-bearing rather than a nicety, because the apply at 0:14 has no room for a download. Run `adk web` once and dismiss the telemetry consent dialog, so the room does not hit it forty times at once. Run the gap test so the red result is familiar. And warn about three terminals. The `cloud-run-proxy` check inherited from #8 is the single most important item on the list.
+- **[#15 rehearsal](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)** — rehearse against this file, through the proxy, on the worst wifi available. The two things to test under pressure are the cut list and whether an attendee can actually open the service at 0:41.
+- **[#32 speaker materials](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)** — four windows need prepared narration rather than improvisation: the apply at 0:14, the rigged run at 0:31, the build check at 0:39 and the second apply at 0:40.

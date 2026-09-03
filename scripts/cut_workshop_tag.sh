@@ -70,11 +70,11 @@ Cut and pushed: $TAG
 $TAG is now the tip of main, so this is what goes in the pre-flight and gets
 read out to anyone arriving cold:
 
-  git clone https://github.com/pedrodcsjostrom/invoice_analysis.git
-  cd invoice_analysis && uv sync
+  git clone https://github.com/pedrodcsjostrom/adk-invoice-workshop.git
+  cd adk-invoice-workshop && uv sync
 
 To pin explicitly, after a fix tag:
 
-  git clone --branch $TAG --depth 1 https://github.com/pedrodcsjostrom/invoice_analysis.git
+  git clone --branch $TAG --depth 1 https://github.com/pedrodcsjostrom/adk-invoice-workshop.git
 
 EOF
