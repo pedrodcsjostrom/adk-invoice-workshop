@@ -104,11 +104,24 @@ terraform apply -var "image=$IMAGE"
 
 ## Tearing down
 
+Use the script, not the bare command:
+
 ```bash
-terraform destroy
+../scripts/teardown.sh
 ```
 
-The bucket has `force_destroy` and the database has `deletion_policy = "DELETE"`,
-so this leaves nothing behind. Verified on the fresh project with an object
-already in the bucket: nine resources destroyed in under a minute, with no
-database, bucket or service surviving. APIs stay enabled, which costs nothing.
+`terraform destroy` does take everything this stack owns. The bucket has
+`force_destroy` and the database has `deletion_policy = "DELETE"`, and on the
+fresh project, with an object already in the bucket, nine resources went in
+under a minute with no database, bucket or service surviving.
+
+What it cannot take is anything Terraform did not create. `gcloud builds
+submit` stages your source into `gs://<PROJECT_ID>_cloudbuild`, a bucket it
+makes for itself on the first build; a destroy leaves it, and nothing expires
+what is inside. The script deletes it, then lists whatever is still alive in
+the project instead of asserting that nothing is. Enabled APIs also survive,
+and should — they cost nothing.
+
+See [docs/COST.md](../docs/COST.md) for what the hour costs and for the
+`--delete-project` option, which is the surer end to a project created only for
+this workshop.
