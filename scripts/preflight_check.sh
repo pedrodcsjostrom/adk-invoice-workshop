@@ -19,7 +19,7 @@
 
 set -uo pipefail
 
-VERSION="1"
+VERSION="2"
 
 # ---------------------------------------------------------------- settings --
 
@@ -175,16 +175,43 @@ else
   fi
 fi
 
-PYTHON_VERSION=""
-if have python3; then
-  PYTHON_VERSION=$(python3 -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' 2>/dev/null)
+# The kit is run entirely through uv, and uv fetches its own interpreter when
+# the machine has none. So a bare `python3` on PATH is one way to satisfy this
+# and not the only one: look at every interpreter the kit could actually use
+# and keep the newest. A clean-machine run failed here with "python3 is not
+# installed" on a machine where the agent ran perfectly.
+py_version_of() { "$1" -c 'import sys; print("%d.%d.%d" % sys.version_info[:3])' 2>/dev/null; }
+
+PY_CANDIDATES=()
+have python3 && PY_CANDIDATES+=("python3|python3 on your PATH")
+[[ -x "$REPO_ROOT/.venv/bin/python" ]] && PY_CANDIDATES+=("$REPO_ROOT/.venv/bin/python|the kit's own .venv")
+if have uv; then
+  UV_PYTHON=$(uv python find 2>/dev/null | tail -1)
+  [[ -n "$UV_PYTHON" && -x "$UV_PYTHON" ]] && PY_CANDIDATES+=("$UV_PYTHON|an interpreter uv manages")
 fi
+
+PYTHON_VERSION=""
+PYTHON_SOURCE=""
+if [[ ${#PY_CANDIDATES[@]} -gt 0 ]]; then
+  for cand in "${PY_CANDIDATES[@]}"; do
+    v=$(py_version_of "${cand%%|*}")
+    [[ -z "$v" ]] && continue
+    if [[ -z "$PYTHON_VERSION" ]] || at_least "$v" "$PYTHON_VERSION"; then
+      PYTHON_VERSION="$v"
+      PYTHON_SOURCE="${cand#*|}"
+    fi
+  done
+fi
+
 if [[ -z "$PYTHON_VERSION" ]]; then
-  fail "python3 is not installed" "The kit needs Python $MIN_PYTHON or newer."
+  fail "no Python this kit can use" \
+       "The kit needs Python $MIN_PYTHON or newer." \
+       "You do not need a system one — let uv fetch it: uv python install 3.12"
 elif at_least "$PYTHON_VERSION" "$MIN_PYTHON"; then
-  pass "python $PYTHON_VERSION"
+  pass "python $PYTHON_VERSION — $PYTHON_SOURCE"
 else
   fail "python $PYTHON_VERSION is below the $MIN_PYTHON this kit needs" \
+       "The newest one found is $PYTHON_SOURCE." \
        "Install a newer Python, or let uv fetch one: uv python install 3.12"
 fi
 
@@ -274,13 +301,19 @@ else
   pass "project is $PROJECT_ID"
 fi
 
+# Remedies below print commands meant to be pasted, and several of them name
+# the project. When there is no project yet, "(none)" must not end up inside a
+# command line — a clean-machine run printed "gcloud config set project (none)".
+PROJECT_HINT="$PROJECT_ID"
+[[ "$PROJECT_ID" == "(none)" ]] && PROJECT_HINT="YOUR_PROJECT_ID"
+
 ADC_FILE="${CLOUDSDK_CONFIG:-$HOME/.config/gcloud}/application_default_credentials.json"
 ADC_TOKEN=""
 QUOTA_PROJECT=""
 if [[ ! -f "$ADC_FILE" ]]; then
   fail "no application default credentials" \
        "Run these two, in this order — the order is what sets the quota project:" \
-       "  gcloud config set project $PROJECT_ID" \
+       "  gcloud config set project $PROJECT_HINT" \
        "  gcloud auth application-default login"
 else
   if have jq; then
@@ -293,12 +326,12 @@ else
     fail "your credentials carry no quota project" \
          "This fails at apply time with a 'requires a quota project' error." \
          "Fix it in this order:" \
-         "  gcloud config set project $PROJECT_ID" \
+         "  gcloud config set project $PROJECT_HINT" \
          "  gcloud auth application-default login"
   elif [[ "$QUOTA_PROJECT" != "$PROJECT_ID" ]]; then
     warn "credentials bill quota to $QUOTA_PROJECT, not $PROJECT_ID" \
          "Usually harmless, but it is a surprise you do not want tomorrow. To align them:" \
-         "  gcloud auth application-default set-quota-project $PROJECT_ID"
+         "  gcloud auth application-default set-quota-project $PROJECT_HINT"
   else
     pass "credentials carry the right quota project"
   fi
@@ -318,7 +351,9 @@ section "3. Project and billing"
 PROJECT_STATE=""
 PARENT=""
 PROJECT_OK=false
-if [[ "$PROJECT_ID" != "(none)" ]]; then
+if [[ "$PROJECT_ID" == "(none)" ]]; then
+  info "skipped — no project is selected, see above"
+else
   PROJECT_STATE=$(gcloud projects describe "$PROJECT_ID" --format='value(lifecycleState)' 2>/dev/null)
   if [[ "$PROJECT_STATE" == "ACTIVE" ]]; then
     PROJECT_OK=true
@@ -566,7 +601,7 @@ else
       pass "invoice_agent/.env names a project"
     else
       fail "invoice_agent/.env still has the placeholder project" \
-           "Edit it and set GOOGLE_CLOUD_PROJECT=$PROJECT_ID"
+           "Edit it and set GOOGLE_CLOUD_PROJECT=$PROJECT_HINT"
     fi
     if grep -q '^GOOGLE_API_KEY=\|^GOOGLE_GENAI_API_KEY=' "$REPO_ROOT/invoice_agent/.env"; then
       fail "invoice_agent/.env sets an API key" \
@@ -575,7 +610,7 @@ else
   else
     fail "invoice_agent/.env does not exist" \
          "Run: cp invoice_agent/.env.example invoice_agent/.env" \
-         "Then set GOOGLE_CLOUD_PROJECT=$PROJECT_ID in it."
+         "Then set GOOGLE_CLOUD_PROJECT=$PROJECT_HINT in it."
   fi
 
   if have uv && (cd "$REPO_ROOT" && uv run --no-sync python -c 'import google.adk' >/dev/null 2>&1); then
@@ -602,13 +637,20 @@ else
     fi
   fi
 
+  # What this actually detects is ADK's per-agent session store, and a clean
+  # run pinned down when it appears: not when `adk web` starts, but when a
+  # session is first created — which is the moment you pick the agent in the
+  # UI's dropdown. Starting the server and stopping it again leaves nothing
+  # behind, so the remedy has to say "open the agent", not "run the server".
+  # The telemetry consent itself is browser-side and no script can see it.
   if [[ -e "$REPO_ROOT/invoice_agent/.adk" || -e "$REPO_ROOT/.adk" || -e "$HOME/.adk" ]]; then
-    pass "the developer UI has been run at least once here"
+    pass "the developer UI has been opened on this machine"
   else
-    warn "the developer UI has never been run on this machine" \
-         "Run it once today and dismiss the telemetry consent dialog it shows:" \
+    warn "the developer UI has never been opened on this machine" \
+         "Run it, and then pick invoice_agent from the dropdown — that last part is what counts:" \
          "  uv run adk web ." \
-         "Doing this now means the room does not hit that dialog forty times at once tomorrow."
+         "Answer the telemetry consent dialog while you are there. Doing it today means the" \
+         "room does not hit that dialog forty times at once tomorrow."
   fi
 fi
 

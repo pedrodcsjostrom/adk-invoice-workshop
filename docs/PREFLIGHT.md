@@ -5,9 +5,14 @@ are available for installing Terraform, waiting for a Google Cloud API to
 switch on, or discovering that your laptop cannot reach the model. So all of
 that happens today, on your own machine, before you arrive.
 
-Budget **30 minutes**, most of it waiting on downloads. At the end you run one
-script and send its output to the host. That report is the whole point of this
-page: if it says READY, tomorrow works.
+Budget **30 minutes**. The downloads are only a few minutes of that — about
+250 MB in total, and step 5 tells you why they still have to happen today. What
+actually fills the half hour is signing up for the free trial, two browser
+sign-ins, and one **unavoidable ten-minute wait** in step 3 while Google turns
+the APIs on. Start step 3 early and do the rest while it settles.
+
+At the end you run one script and send its output to the host. That report is
+the whole point of this page: if it says READY, tomorrow works.
 
 You need a laptop you can install software on, a Google account, and a payment
 card. The card is for Google's free trial, which is what pays for the hour —
@@ -24,7 +29,7 @@ budget alert.
 |---|---|---|
 | `gcloud` | Everything Google Cloud | <https://docs.cloud.google.com/sdk/docs/install> |
 | `terraform` 1.5+ | You create your own cloud stack during the hour | <https://developer.hashicorp.com/terraform/install> |
-| `python` 3.10+ | The agent | your package manager, or `uv python install 3.12` |
+| `python` 3.10+ | The agent | your package manager — or skip it, `uv sync` in step 5 fetches its own |
 | `uv` | Installs the agent's dependencies in seconds | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
 | `git` | Cloning the kit | your package manager |
 
@@ -37,11 +42,16 @@ gcloud components install cloud-run-proxy
 The agent you deploy is **private** — there is no public URL, by design. The
 only way you open it is through this proxy. If `gcloud` came from a package
 manager it will refuse the command above, because it does not own its own
-components. On Debian or Ubuntu the fix is one line:
+components — but it refuses helpfully, printing the exact command to run
+instead. On Debian or Ubuntu that command is:
 
 ```bash
 sudo apt-get install google-cloud-cli-cloud-run-proxy
 ```
+
+That package is real, it is in the repository Google already ships, and it
+installs a working proxy — the check script in step 7 confirms it three
+different ways.
 
 If `gcloud` came from snap, it cannot take components at all. Remove it and
 install the tarball SDK from the link in the table.
@@ -135,10 +145,15 @@ into a working copy you have started typing in.
 uv run adk web .
 ```
 
-The first launch shows a telemetry consent dialog and prints two alarming
-warnings that are harmless. Answer the dialog, look at the UI, then stop it
-with Ctrl-C. Getting this out of the way today is worth two minutes of the
-room's time tomorrow.
+Open <http://127.0.0.1:8000> and **pick `invoice_agent` from the dropdown at the
+top left**. Do not skip that part: choosing the agent is what creates the local
+session store, and it is what the check script looks for. Starting the server
+and stopping it again leaves no trace, and the check will still warn at you.
+
+The first launch also shows a telemetry consent dialog and prints two alarming
+warnings that are harmless. Answer the dialog, look at the UI, then stop the
+server with Ctrl-C. Getting this out of the way today is worth two minutes of
+the room's time tomorrow.
 
 You will also see one test failing if you run the suite. That is deliberate —
 the kit ships with two gaps in it that you fill in during the session.
