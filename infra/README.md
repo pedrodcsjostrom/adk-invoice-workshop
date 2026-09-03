@@ -55,7 +55,10 @@ terraform init
 terraform apply
 ```
 
-The first apply takes six or seven minutes, almost all of it Firestore.
+Measured against a genuinely fresh project on 2026-09-03: the first apply took
+50 seconds for all nine resources. Firestore, the resource most likely to be
+slow, took 4. Artifact Registry at 23 seconds was the longest. Budget a couple
+of minutes in the run of show, not the ten you might expect.
 
 There is no agent image yet, because the repository that holds it is created by
 this same apply. The service therefore starts on Google's public hello
@@ -68,6 +71,16 @@ gcloud run services proxy invoice-agent --region europe-west1 --project "$PROJEC
 
 Open <http://localhost:8080> and you should see the hello page. Leave the proxy
 running; it is how you reach the agent for the rest of the session.
+
+> **The proxy is a separate gcloud component, and this bites.** `gcloud run
+> services proxy` is not part of the base install. On a Debian or Ubuntu gcloud
+> installed from apt, the component manager is disabled and the interactive
+> "install it now?" prompt fails outright, telling you to run
+> `sudo apt-get install google-cloud-cli-cloud-run-proxy`. Attendees on a
+> managed laptop may not have that sudo. On other installs,
+> `gcloud components install cloud-run-proxy` is enough. Since every attendee
+> now reaches the service this way, this belongs in the pre-flight check, not
+> in the room.
 
 ## Swapping in the agent
 
@@ -96,4 +109,6 @@ terraform destroy
 ```
 
 The bucket has `force_destroy` and the database has `deletion_policy = "DELETE"`,
-so this leaves nothing behind. APIs stay enabled, which costs nothing.
+so this leaves nothing behind. Verified on the fresh project with an object
+already in the bucket: nine resources destroyed in under a minute, with no
+database, bucket or service surviving. APIs stay enabled, which costs nothing.
