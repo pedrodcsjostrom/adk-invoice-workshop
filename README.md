@@ -4,6 +4,15 @@ The 60-minute Google ADK invoice-analyzer workshop kit. Right now it holds the
 thinnest end-to-end slice: an invoice PDF goes in, a structured JSON record comes
 out, via one ADK agent running on Vertex AI.
 
+## Attending the workshop?
+
+Do [docs/PREFLIGHT.md](docs/PREFLIGHT.md) the day before — 30 minutes, and it
+ends with one script that says whether tomorrow will work:
+
+```bash
+./scripts/preflight_check.sh
+```
+
 ## Run it
 
 You need a GCP project with billing and the Vertex AI API enabled.
@@ -56,7 +65,9 @@ for this workshop.
 - `invoice_agent/` — the agent: one `LlmAgent`, one tool, one output schema
 - `scripts/make_invoice.py` — generates the sample invoice, `--big` for a 10 MB one
 - `scripts/smoke.py` — headless end-to-end check
+- `scripts/preflight_check.sh` — what every attendee runs the day before
 - `scripts/teardown.sh` — destroys the stack and proves the project is empty
+- `docs/PREFLIGHT.md` — the attendee-facing setup, and `docs/preflight-email.md` for the host
 - `infra/` — the Terraform stack every attendee applies to their own project
 - `docs/COST.md` — what the hour costs, and what survives a teardown
 - `docs/research/` — what was verified, and how
