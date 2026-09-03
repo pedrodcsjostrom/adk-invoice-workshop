@@ -94,7 +94,7 @@ async def run(pdf_path: str) -> int:
     print("\n--- checks ---")
     print(f"tool called            {'PASS ' + tool_calls[0] if tool_calls else 'FAIL none'}")
     print(f"schema conforms        PASS ({len(parsed.line_items)} line items)")
-    print(f"vendor_id resolved     {parsed.vendor_id or 'None'}")
+    print(f"supplier_id resolved   {parsed.supplier_id or 'None'}")
     return 0 if tool_calls else 1
 
 
