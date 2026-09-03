@@ -44,26 +44,6 @@ No credentials, no keys. Sign in with the Google account you already have.
 
 ---
 
-<!-- _footer: 'cp solutions/tools.py invoice_agent/tools.py   ·   cp solutions/agent.py invoice_agent/agent.py' -->
-
-# You will type two things today.
-
-**1 · `check_invoice_arithmetic`** — a tool, ~15 lines.
-*The docstring is prompt text.*
-
-**2 · Steps 3 and 4 of `INSTRUCTION`** — twelve lines of English.
-*You are writing policy, not code.*
-
-Both are marked in the file. Both have a solution next to them.
-
-```
-uv run pytest tests/test_gap_arithmetic.py
-```
-
-### It is red. That is correct.
-
----
-
 <!-- _class: lead -->
 <!-- _footer: 'cp solutions/tools.py invoice_agent/tools.py   ·   cp solutions/agent.py invoice_agent/agent.py' -->
 
@@ -76,8 +56,6 @@ Run in a loop until it stops asking for tools.
 ### There is no fourth thing.
 
 ---
-
-<!-- _footer: 'cp solutions/tools.py invoice_agent/tools.py   ·   cp solutions/agent.py invoice_agent/agent.py' -->
 
 # Three things to take away.
 

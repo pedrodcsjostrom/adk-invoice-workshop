@@ -2,6 +2,10 @@
 
 **Status: settled shape, timings from #22's measured run, unrehearsed as a whole.** Ticket [#11](https://github.com/pedrodcsjostrom/invoice_analysis/issues/11). [#15](https://github.com/pedrodcsjostrom/invoice_analysis/issues/15) is what turns the budgets into measurements.
 
+What goes on the projector and what is said over each running command live in
+[`deck.md`](deck.md) and [`speaker-notes.md`](speaker-notes.md) ([#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)). Five slides, only one of
+which appears mid-hour.
+
 ## The one thing
 
 > **Every attendee leaves having typed the re-read steps into the agent instruction and watched their own agent call the arithmetic check twice on the rigged invoice.**
@@ -60,6 +64,8 @@ they survive every screen switch:
 cp solutions/tools.py invoice_agent/tools.py     # fill-in one, needed from 0:09
 cp solutions/agent.py invoice_agent/agent.py     # fill-in two, needed from 0:25
 ```
+
+The words for this are written out at 0:05 in [`speaker-notes.md`](speaker-notes.md) — they replaced a slide that was cut, so they are said over the editor with the fences on screen.
 
 Everyone runs one command:
 
@@ -176,7 +182,8 @@ This segment is not cuttable. It is compressible to sixty seconds of "run this n
 
 ## 0:49 — 0:57 · What that was, and where it goes (8 min)
 
-Three points, no slides needed:
+Three points, on the last content slide of the deck — this is one of the two
+places a slide earns its keep, because the room is listening rather than typing:
 
 1. A tool's description is its interface. English is the type signature.
 2. The interesting behaviour is in the loop, not the model. Nothing clever happened in any single call.

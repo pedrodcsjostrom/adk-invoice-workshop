@@ -1,12 +1,49 @@
 # Speaker notes — the four dead windows and the diversion
 
-**Status: rough, unreviewed, unrehearsed.** Ticket [#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32). Companion to [`run-of-show.md`](run-of-show.md) and [`deck.md`](deck.md).
+**Status: reviewed by Peter, unrehearsed.** Ticket [#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32). Companion to [`run-of-show.md`](run-of-show.md) and [`deck.md`](deck.md).
 
-The hour deliberately runs commands under talking. Four windows are long enough that improvising over them will show. Each script below is written to be **said**, not read — spoken at a normal pace, the word counts land inside the measured wait. Each has a **short tail** to drop if the command finishes early and a **stretch** if it runs long.
+The hour deliberately runs commands under talking. Four windows are long enough that improvising over them will show. Each script below is written to be **said**, not read — spoken at a normal pace, the word counts land inside the measured wait. The 0:05 section is the exception: it is not a dead window, it is the narration that replaced a cut slide, and it is not racing a command. Each has a **short tail** to drop if the command finishes early and a **stretch** if it runs long.
 
 Timings in brackets are the measured numbers from [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22). None of this has been said out loud yet; [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is what turns these budgets into measurements.
 
 ---
+
+## 0:05 — naming the two gaps, with nothing on screen
+
+Not a dead window: the room is looking at the repo, not a spinner. It is here
+because the deck had a slide for this and Peter cut it, and the words are worth
+keeping. Say it over the repo tour, projector on the editor.
+
+> You are going to type two things today. That is all — the rest is already
+> written, and most of it is plumbing you would not learn anything from typing.
+>
+> The first is a tool called `check_invoice_arithmetic`. About fifteen lines.
+> The thing to notice while you write it is that its **docstring is prompt
+> text** — it is not a comment, it is the only description the model ever sees
+> of what this function is for. You are writing the interface in English.
+>
+> The second is steps three and four of the instruction. Twelve lines of prose.
+> No code at all. You are writing policy.
+>
+> Both are marked in the file with a fence you cannot miss, and both have the
+> finished version sitting next to them in `solutions/`. The copy command is in
+> the fence itself, so you never have to ask me for it, and it is on the
+> whiteboard as well.
+
+Then everyone runs the one command:
+
+```
+uv run pytest tests/test_gap_arithmetic.py
+```
+
+> It is red. That is correct. It stays red until the first thing you type, and
+> going green is how you will know you are done — it takes about five seconds
+> and it is the only test in the hour.
+
+**Why this has no slide.** It restates what is already fenced in every
+attendee's own file, and putting it on the projector costs a switch to and a
+switch away for nothing. Leaving the editor up means the fences are on screen
+while they are being described, which the slide could not do.
 
 ## W1 · 0:14 — over the first `terraform apply` [38s, budget ~50s]
 
@@ -43,6 +80,8 @@ cd infra && terraform apply -auto-approve
 ## W2 · 0:31 — over the rigged-invoice payoff run [27-34s, budget ~30s]
 
 This is the best thirty seconds of the hour and the only window where the narration is doing teaching work rather than filling time. Say it the same way every time.
+
+**Peter has signed this one off as written** ([#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)), so treat the wording below as fixed rather than as a draft. It is the one script in the kit that should not drift between runs.
 
 > Watch the trace as it fills in, not the spinner.
 >
@@ -142,7 +181,7 @@ The named diversion point is **0:14**, the moment the first apply finishes. It i
 
 ## Open on the notes
 
-1. **None of this has been said out loud.** The word counts are estimates against measured command times. [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is the test.
+1. **None of this has been said out loud.** The word counts are estimates against measured command times. [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is the test. W2's *wording* is settled; its *timing* is not.
 2. **W4 assumes the proxy step follows immediately.** The run of show flags the proxy path as its largest unproven hole; if it needs its own narration window, this is where it lands.
 3. **The 86x figure** comes from `docs/COST.md` — check it still says that before saying it in a room.
 4. **There are two recovery `cp` commands**, one per fence, and the run of show names only the `tools.py` one. Small correction to make there.
