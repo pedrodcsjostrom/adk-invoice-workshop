@@ -1,10 +1,10 @@
-# invoice_analysis
+# adk-invoice-workshop
 
 ## Agent skills
 
 ### Issue tracker
 
-Issues and PRDs live as GitHub issues in `pedrodcsjostrom/invoice_analysis`, managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+Issues and PRDs live as GitHub issues in `pedrodcsjostrom/adk-invoice-workshop`, managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
 
 ### Triage labels
 

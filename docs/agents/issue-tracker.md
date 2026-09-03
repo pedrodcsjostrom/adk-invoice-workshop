@@ -1,6 +1,6 @@
 # Issue tracker: GitHub
 
-Issues and PRDs for this repo live as GitHub issues in `pedrodcsjostrom/invoice_analysis`. Use the `gh` CLI for all operations.
+Issues and PRDs for this repo live as GitHub issues in `pedrodcsjostrom/adk-invoice-workshop`. Use the `gh` CLI for all operations.
 
 ## Conventions
 

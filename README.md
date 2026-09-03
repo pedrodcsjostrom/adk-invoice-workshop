@@ -1,4 +1,4 @@
-# invoice_analysis
+# adk-invoice-workshop
 
 The 60-minute Google ADK invoice-analyzer workshop kit. Right now it holds the
 thinnest end-to-end slice: an invoice PDF goes in, a structured JSON record comes
@@ -41,4 +41,8 @@ Keep `GOOGLE_CLOUD_LOCATION=global`. `gemini-3.5-flash` is not served from
 - `docs/research/` — what was verified, and how
 
 Planning for the kit lives on the issue tracker as
-[Map: 60-minute Google ADK invoice-analyzer workshop kit](https://github.com/pedrodcsjostrom/invoice_analysis/issues/1).
+[Map: 60-minute Google ADK invoice-analyzer workshop kit](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/1).
+
+## Licence
+
+MIT — see [LICENSE](LICENSE). Take it home and build on it.
