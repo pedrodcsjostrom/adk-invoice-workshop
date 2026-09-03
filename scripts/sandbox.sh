@@ -83,7 +83,13 @@ if [[ "${1:-}" == "--teardown" ]]; then
   #
   # This step is manual because a consumer @googlegroups.com group belongs to
   # no Cloud Identity customer, so `gcloud identity groups memberships` cannot
-  # reach it. There is no CLI for this; the UI is the API.
+  # reach it. Checked against the real group with the Cloud Identity API on:
+  #
+  #   ERROR: (gcloud.identity.groups.memberships.list) Invalid value for
+  #   [--group-email]: There is no such a group associated with the specified
+  #   argument
+  #
+  # There is no CLI for this; the UI is the API.
   if [[ -n "$GROUP" ]]; then
     warn "NOT DONE FOR YOU — empty the access group, or this workshop's"
     warn "attendees are pre-granted on the next sandbox:"
