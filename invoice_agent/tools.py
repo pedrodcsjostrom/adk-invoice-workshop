@@ -5,6 +5,8 @@ each tool and what to pass. Keep them short, imperative and honest about what
 the tool does not do.
 """
 
+from google.adk.tools.tool_context import ToolContext
+
 from invoice_agent import registry, store, validation
 from invoice_agent.models import InvoiceRecord, LineItem
 
@@ -50,7 +52,7 @@ def check_invoice_arithmetic(line_items: list[LineItem], total: float) -> dict:
     return validation.check(line_items, total)
 
 
-def save_invoice_record(record: InvoiceRecord) -> dict:
+def save_invoice_record(record: InvoiceRecord, tool_context: ToolContext) -> dict:
     """Save the finished invoice record to the invoice store.
 
     Call this once, last, after the arithmetic check and the supplier lookup.
@@ -61,9 +63,35 @@ def save_invoice_record(record: InvoiceRecord) -> dict:
         record: The completed invoice record.
     """
     result = validation.check(record.line_items, record.total)
-    document_id = store.save(record.model_dump(mode="json"), result["ok"])
+    source_uri = _archive_uploaded_document(tool_context)
+    document_id = store.save(record.model_dump(mode="json"), result["ok"], source_uri)
     return {
         "saved": True,
         "document_id": document_id,
         "validation_passed": result["ok"],
+        "source_uri": source_uri,
     }
+
+
+def _archive_uploaded_document(tool_context: ToolContext) -> str | None:
+    """Copy the document this turn was given into the archive, if there was one.
+
+    The upload never reaches the tool as an argument — it reaches the model as
+    inline bytes on the user's message — so the tool reads it back off the
+    context. Archiving is best effort: a stored record with no original beats a
+    failed save, and the room should not see a stack trace because a bucket
+    was missing.
+    """
+    content = getattr(tool_context, "user_content", None)
+    for part in getattr(content, "parts", None) or []:
+        blob = getattr(part, "inline_data", None)
+        if blob is None or not blob.data:
+            continue
+        try:
+            return store.archive_source(
+                blob.data, blob.mime_type or "application/octet-stream", blob.display_name
+            )
+        except Exception as error:  # noqa: BLE001 - never fail the save
+            print(f"[archive] skipped: {error}")
+            return None
+    return None

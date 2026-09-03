@@ -5,6 +5,8 @@ reads the invoice, a tool tells it the numbers do not agree, and it goes back to
 the document rather than to its own imagination.
 """
 
+import os
+
 from google.adk.agents import LlmAgent
 
 from invoice_agent.models import InvoiceRecord
@@ -14,7 +16,9 @@ from invoice_agent.tools import (
     save_invoice_record,
 )
 
-MODEL = "gemini-3.5-flash"
+# Terraform passes INVOICE_MODEL to the Cloud Run service, so the deployed
+# agent and the laptop one are one edit apart, not two.
+MODEL = os.environ.get("INVOICE_MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """\
 You process supplier invoices. The user gives you one invoice document.
