@@ -67,10 +67,11 @@ _STEPS_RE_READ = """\
 # ===== END FILL-IN 2 ==========================================================
 
 _STEPS_SAVE_AND_ANSWER = """\
-5. If the second check also reports ok=false, the invoice itself does not add
-   up and no amount of re-reading will fix it. Keep every number exactly as
-   printed, discrepancy included, and carry on to step 6. Do not check a third
-   time.
+5. When the steps above are done and the arithmetic still reports ok=false,
+   the invoice itself does not add up and no amount of re-reading will fix it.
+   Keep every number exactly as printed, discrepancy included, and carry on to
+   step 6. Do not call check_invoice_arithmetic any more times than the steps
+   above ask you to.
 
 6. Call lookup_supplier once with the supplier name printed on the document.
    Use the supplier_id it returns, or null when found is false.
