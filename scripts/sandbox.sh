@@ -212,11 +212,11 @@ else
     ok "$ROLE on group:$GROUP"
   done
 
-  # Membership propagates to IAM on Google's schedule, not on ours. The run of
-  # show leans on the thirteen minutes between triage at 0:01 and the first
-  # model call at 0:18 absorbing it.
-  warn "Group membership takes minutes to reach IAM. Existing members are"
-  warn "granted from now; anyone joining during the session waits."
+  # Propagation was the risk #37 could not price and #40 measured: three
+  # seconds from joining the group to a working Vertex call, against this
+  # binding. The run of show budgeted thirteen minutes for it and needs none,
+  # so a cold arrival can join at any point in the hour, not only at triage.
+  ok "Membership reaches IAM in about three seconds (measured, #40)"
 fi
 
 # --- 5. the handout ---------------------------------------------------------
@@ -229,8 +229,8 @@ cat <<HANDOUT
   What a cold arrival does, in this order. No credentials, no project of
   their own. They run the whole local half of the hour on their laptop.
 
-  1. Join the group, FIRST, before the clone — membership needs minutes to
-     reach IAM and the clone is what fills them.
+  1. Join the group. Measured at three seconds to take effect, so this is
+     not a race — they can join at any point before 0:18.
 
   2. Two lines in .env:
 

@@ -44,7 +44,7 @@ Say out loud, once, the thing that makes the hour make sense: **the failure is d
 
 **Cold-arrival triage happens here, in the first 60 seconds.** Hands up for anyone whose pre-flight did not pass. Put the sandbox slide up and give them three instructions, in this order ([#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37)):
 
-1. **Join the group now**, before anything else — QR code on the slide. Membership takes minutes to reach IAM, and the next thirteen minutes are what pays for it.
+1. **Join the group** — QR code on the slide. Measured at three seconds from join to a working Vertex call, so this is not a race and nobody has to wait on it.
 2. **Two lines in `.env`**: `GOOGLE_CLOUD_PROJECT=<sandbox id>` and `GOOGLE_CLOUD_LOCATION=global`.
 3. **`gcloud auth application-default login`**, then `gcloud auth application-default set-quota-project <sandbox id>`.
 
@@ -98,7 +98,7 @@ While it runs: anyone still red on the gap test copies the solution file, and th
 
 **This is the diversion point.** Anyone whose apply fails takes the cold-arrival handout now — join the group, repoint `.env` and the quota project at the sandbox — with twenty minutes of runway and nothing important missed. They lose the deploy and keep the payoff. Do not debug an individual project from the front of the room.
 
-The one cost of arriving here rather than at 0:01 is that the group join has four minutes to propagate instead of thirteen. If it has not taken by 0:18, grant them by email; that is instant.
+Arriving here rather than at 0:01 costs nothing on access: the join was measured at three seconds, so a diversion at 0:14 is as good as one at 0:01. What they lose is only the deploy itself.
 
 ## 0:18 — 0:25 · First run, local (7 min)
 
