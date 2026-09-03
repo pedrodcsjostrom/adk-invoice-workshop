@@ -44,14 +44,21 @@ Say out loud, once, the thing that makes the hour make sense: **the failure is d
 
 **Cold-arrival triage happens here, in the first 60 seconds.** Hands up for anyone whose pre-flight did not pass. They get the sandbox handout ([#13](https://github.com/pedrodcsjostrom/invoice_analysis/issues/13)) — project id and service name, no credentials — and start their clone now. They run one segment behind until the first `solutions/` copy pulls them level. That is what the escape hatch is for.
 
+> [!WARNING]
+> **That last sentence does not survive [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13).** The sandbox is only the deployed service: `allAuthenticatedUsers` is refused on a project-level IAM policy, so a cold arrival cannot be granted Vertex on it and cannot run an agent of their own at all. They watch the payoff rather than producing it, which is the one thing this outline says every attendee must leave having done. A fallback attendee who "runs one segment behind" does not exist as built. [#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37) decides what they actually do, and this paragraph is rewritten when it lands.
+
 ## 0:05 — 0:09 · The repo, and one command (4 min)
 
-Tour the shape, not the code. `invoice_agent/` with agent, tools, validation, store and server; `samples/invoices/`; `data/vendor_registry.json`; `solutions/`; `terraform/`.
+Tour the shape, not the code. `invoice_agent/` with agent, tools, validation, store and server; `samples/invoices/`; `data/vendor_registry.json`; `solutions/`; `infra/`.
 
-Name the two gaps now so nobody is surprised by them. Say the escape hatch out loud and leave it on screen for the whole hour:
+Name the two gaps now so nobody is surprised by them. There are **two** escape
+hatches, one per gap, and each already sits in the comment fence in the
+attendee's own file. Say both out loud and write both on the whiteboard, where
+they survive every screen switch:
 
 ```
-cp solutions/tools.py invoice_agent/tools.py
+cp solutions/tools.py invoice_agent/tools.py     # fill-in one, needed from 0:09
+cp solutions/agent.py invoice_agent/agent.py     # fill-in two, needed from 0:25
 ```
 
 Everyone runs one command:
@@ -75,7 +82,7 @@ Verify: the same pytest, now green, in five seconds.
 Two things at once, and the ordering matters: the command goes first, the talking happens over it.
 
 ```
-cd terraform && terraform apply -auto-approve
+cd infra && terraform apply -auto-approve
 ```
 
 Thirty-eight seconds, nine resources ([#8](https://github.com/pedrodcsjostrom/invoice_analysis/issues/8), timed in [#22](https://github.com/pedrodcsjostrom/invoice_analysis/issues/22)). The `image` variable defaults to Google's public hello container, which is exactly what lets this run before any image exists — and is why this step can move here at all. It has **no dependency on anything the attendee types**, which no other cloud step can claim.
