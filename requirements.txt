@@ -1,0 +1,4 @@
+# The container's dependency list. pyproject.toml stays the source of truth for
+# development; this is the deployed subset, pinned to what the workshop proved.
+google-adk~=2.8
+uvicorn~=0.34

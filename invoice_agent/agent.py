@@ -16,8 +16,9 @@ from invoice_agent.tools import (
     save_invoice_record,
 )
 
-# Terraform passes INVOICE_MODEL to the Cloud Run service, so the deployed
-# agent and the laptop one are one edit apart, not two.
+# The Terraform stack passes INVOICE_MODEL to the Cloud Run container, so the
+# deployed model is infrastructure configuration rather than a source edit.
+# Locally the default is what the workshop proved.
 MODEL = os.environ.get("INVOICE_MODEL", "gemini-3.5-flash")
 
 INSTRUCTION = """\

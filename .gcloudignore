@@ -1,0 +1,15 @@
+# What `gcloud builds submit` uploads. Without this file gcloud derives the
+# list from .gitignore, which keeps the sample invoices and the Terraform state
+# in the upload; the build needs neither, and a smaller upload is a faster
+# build in a room on conference wifi.
+.git/
+.venv/
+.claude/
+.terraform/
+infra/
+tests/
+docs/
+samples/
+.local_records.jsonl
+__pycache__/
+*.pyc
