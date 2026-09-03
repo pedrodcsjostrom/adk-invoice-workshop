@@ -28,18 +28,25 @@ answer key when tuning the agent, not as anything the agent gets to see.
 | `07-tallgrass-scan.jpg` | An image rather than a PDF. Rendered then roughed up: warm paper, uneven lighting, 1.4 degrees of rotation, grain, soft focus and heavy JPEG loss. |
 | `08-almendra-spanish.pdf` | Non-English layout. Spanish labels throughout, `FACTURA`, `CANT.`, `IMPORTE`, `Total a pagar`. |
 | `09-unknown-supplier.pdf` | A supplier deliberately absent from the vendor registry. The lookup misses and the record saves with a null `supplier_id`. |
+| `10-ridgeway-terms-charge.pdf` | A fourth charge of GBP 480.00 stated as a sentence in the terms rather than as a table row, and included in the total. |
+| `11-kestrel-credit-line.pdf` | A credit row printed in accounting notation as `620.00 CR` rather than as a negative number. |
 
-## Two rigged invoices, on purpose
+## The rigged invoices, and what tuning found
 
-The ticket asked for one invoice whose lines do not sum to the stated total,
-and `04-halden-rigged-total.pdf` is it. But that document is *irreconcilable*:
-re-reading it cannot make the numbers agree, so it can only demonstrate the
-agent noticing and reporting a bad invoice.
+`04-halden-rigged-total.pdf` is the demo document. Its lines do not sum to the
+stated total and no re-reading can make them agree, so it shows the agent
+noticing a bad invoice and filing it flagged.
 
-The moment the workshop wants is the agent failing validation, going back to
-the document, and then committing. That needs a document where a second look
-changes the answer, which is what `05-vertex-missable-line.pdf` provides. Pick
-between them when tuning the agent instruction.
+Files 05, 10 and 11 were each built to make the agent misread on a first pass
+so that a second look could put it right. **None of them work.** Gemini 3.5
+Flash extracted every one of them correctly, first time, on every run — the
+small-print row, the charge buried in the terms, and the `CR` credit alike.
+The count across the whole corpus was 33 correct extractions out of 33.
+
+They are kept because they are realistic documents worth having, and because
+they are the evidence for that finding. But do not build a demo beat on the
+agent failing to read one of them. See
+`docs/research/failure-then-retry-tuning.md`.
 
 ## Constraints the corpus respects
 

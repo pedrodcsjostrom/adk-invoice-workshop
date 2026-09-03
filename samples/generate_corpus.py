@@ -254,6 +254,81 @@ def render_single_page(inv: Invoice, labels: dict[str, str] | None = None) -> No
     c.save()
 
 
+def render_prose_charge(inv: Invoice, labels: dict[str, str] | None = None) -> None:
+    """The last charge appears only as a sentence in the terms, never as a row.
+
+    Nothing here is hard to see — the sentence is ordinary body text in the
+    same ink as everything else. What makes it missable is that reading the
+    table is a complete-looking answer, so a first pass stops there. Going
+    back after the arithmetic fails is what finds it, which is exactly the
+    recovery the workshop wants on screen.
+    """
+    labels = labels or EN
+    c = canvas.Canvas(str(OUT / inv.filename), pagesize=A4)
+    c.setTitle(inv.invoice_number)
+    y = draw_header(c, inv, labels)
+    y = draw_table_head(c, inv, y, labels)
+    for line in inv.lines[:-1]:
+        y = draw_line(c, inv, line, y)
+    y = draw_total(c, inv, y, labels)
+
+    charge = inv.lines[-1]
+    y -= 24
+    c.setFillColor(INK)
+    c.setFont("Body-Bold", 9)
+    c.drawString(MARGIN, y, "Terms and conditions")
+    y -= 16
+    c.setFillColor(MUTED)
+    c.setFont("Body", 8.5)
+    for text in [
+        "1. Payment is due 30 days from the invoice date. Goods remain our property until paid for.",
+        "2. Claims for shortage or damage must be made in writing within 5 working days of delivery.",
+        f"3. {charge.description}: {charge.quantity:g} at {inv.currency} {money(charge.unit_price)},",
+        f"   {inv.currency} {money(charge.amount)} in total. This charge is levied on this invoice and",
+        f"   is included in the {labels['total'].lower()} shown above.",
+        "4. Returns are accepted within 14 days in original packaging, carriage paid by the buyer.",
+    ]:
+        c.drawString(MARGIN, y, text)
+        y -= 12
+
+    draw_footer(c, inv, inv.footer)
+    c.showPage()
+    c.save()
+
+
+def render_credit_line(inv: Invoice, labels: dict[str, str] | None = None) -> None:
+    """One row is a credit, printed the way accounting departments print them.
+
+    The amount shows as a positive number with a trailing CR rather than a
+    minus sign. Nothing is hidden: every character is plainly legible. The trap
+    is a reading one — take the row at its printed sign and the invoice is out
+    by twice the credit.
+    """
+    labels = labels or EN
+    c = canvas.Canvas(str(OUT / inv.filename), pagesize=A4)
+    c.setTitle(inv.invoice_number)
+    y = draw_header(c, inv, labels)
+    y = draw_table_head(c, inv, y, labels)
+
+    x_desc, x_qty, x_unit, x_amt = table_columns()
+    for line in inv.lines:
+        if line.amount >= 0:
+            y = draw_line(c, inv, line, y)
+            continue
+        c.setFillColor(INK)
+        c.setFont("Body", 9)
+        c.drawString(x_desc, y, line.description)
+        c.drawRightString(x_qty, y, f"{line.quantity:g}")
+        c.drawRightString(x_unit, y, money(abs(line.unit_price)))
+        c.drawRightString(x_amt, y, f"{money(abs(line.amount))} CR")
+        y -= 16
+
+    draw_total(c, inv, y, labels)
+    draw_footer(c, inv, inv.footer)
+    c.showPage()
+    c.save()
+
+
 def render_multipage(inv: Invoice, per_page: int, labels: dict[str, str] | None = None) -> None:
     """Line items run across several pages; the total appears only on the last."""
     labels = labels or EN
@@ -601,6 +676,50 @@ def build() -> list[tuple[str, Invoice]]:
     )
     invoices.append(("unknown", unknown))
 
+    # The workshop centrepiece. The table's three rows look like the whole
+    # invoice, but a fourth charge is stated in the terms as a sentence and is
+    # inside the total. Read the table alone and you are short 480.00; read the
+    # terms and the invoice reconciles exactly.
+    prose = Invoice(
+        filename="10-ridgeway-terms-charge.pdf",
+        supplier_printed="Ridgeway Facilities Management",
+        supplier_address=["Kestrel House, 4 Gantry Way", "Leeds LS11 5RT", "United Kingdom"],
+        invoice_number="RFM-2026-0918",
+        invoice_date="2026-03-30",
+        currency="GBP",
+        accent="#3d6b4f",
+        footer="Registered in England 04482201. All charges are stated inclusive of tax.",
+        lines=[
+            Line("Monthly cleaning contract, Fenwick Row office", 1, 2480.00),
+            Line("Window cleaning, external, quarterly visit", 2, 315.00),
+            Line("Consumables restock, washroom and kitchen", 6, 74.50),
+            Line("Out-of-hours callout surcharge", 4, 120.00),
+        ],
+    )
+    invoices.append(("prose-charge", prose))
+
+    # A credit row printed as "620.00 CR" rather than with a minus sign. Take
+    # the sign as printed and the invoice is out by twice the credit; read the
+    # CR and it reconciles. The failure is a reading of accounting convention,
+    # not a failure to see the characters.
+    credit = Invoice(
+        filename="11-kestrel-credit-line.pdf",
+        supplier_printed="Kestrel Analytics LLC",
+        supplier_address=["2200 Harbor Steps, Suite 610", "Seattle, WA 98101", "United States"],
+        invoice_number="KA-2026-0331",
+        invoice_date="2026-03-31",
+        currency="USD",
+        accent="#4a3f7a",
+        footer="Credits are applied against the current invoice and are not refundable in cash.",
+        lines=[
+            Line("Data pipeline support retainer, March", 1, 3200.00),
+            Line("Ad-hoc analyst hours, March", 12, 145.00),
+            Line("Dashboard licence seats, monthly", 8, 62.50),
+            Line("Credit, March service level rebate", 1, -620.00),
+        ],
+    )
+    invoices.append(("credit-line", credit))
+
     return invoices
 
 
@@ -614,6 +733,8 @@ NOTES = {
     "07-tallgrass-scan.jpg": "Photographed page rather than a PDF: rotated, grainy, unevenly lit, JPEG artifacts.",
     "08-almendra-spanish.pdf": "Spanish layout and labels. Tax is inside the unit prices, no separate IVA row.",
     "09-unknown-supplier.pdf": "Supplier absent from the vendor registry. Lookup misses and the record saves with a null supplier_id.",
+    "11-kestrel-credit-line.pdf": "A credit row printed as \"620.00 CR\" instead of a negative number. Read the sign as printed and the invoice is out by 1,240.00; read the CR and it reconciles.",
+    "10-ridgeway-terms-charge.pdf": "The workshop centrepiece. A fourth charge of 480.00 is stated as a sentence in the terms rather than as a table row, and is inside the total. The table alone comes up 480.00 short; the terms reconcile it exactly.",
 }
 
 
@@ -648,6 +769,10 @@ def main() -> None:
             render_multipage(inv, per_page=10)
         elif kind == "missable":
             render_missable_line(inv)
+        elif kind == "prose-charge":
+            render_prose_charge(inv)
+        elif kind == "credit-line":
+            render_credit_line(inv)
         elif kind == "scan":
             render_scan(inv, inv.filename)
         elif kind == "spanish":

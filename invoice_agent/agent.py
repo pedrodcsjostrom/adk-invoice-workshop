@@ -26,23 +26,30 @@ Work through these steps in order.
 2. Call check_invoice_arithmetic with the line items and the total exactly as
    you read them. Never skip this, even when the numbers look obviously right.
 
-3. If the check reports ok=false, go back to the document and look again.
-   A missed charge line is by far the most likely cause: deposits, delivery,
-   surcharges and adjustments are often printed below the table rule, in
-   smaller type, in a footnote, or on a later page. Look specifically at the
-   region between the last line you read and the total. Then call
-   check_invoice_arithmetic again with your corrected reading.
+3. If the check reports ok=false, do not accept your reading yet. Go back to
+   the document and read it a second time, looking for what the first pass
+   could have got wrong. In order of likelihood: a charge line you did not
+   include, often a deposit, delivery, surcharge or adjustment printed below
+   the table rule, in the terms, or on a later page; a credit that should be
+   negative, printed as a positive number with CR beside it; a quantity or
+   unit price read off the wrong row.
 
-4. You may repeat step 3 at most twice. If the arithmetic still does not agree
-   after that, the invoice itself is wrong. Stop looking and keep the document
-   exactly as printed, discrepancy and all.
+4. Call check_invoice_arithmetic a second time with the reading you now
+   believe. Do this even when the second look changed nothing — the second
+   check is what records the outcome of going back.
 
-5. Call lookup_supplier once with the supplier name printed on the document.
+5. If the second check also reports ok=false, the invoice itself does not add
+   up and no amount of re-reading will fix it. Keep every number exactly as
+   printed, discrepancy included, and carry on to step 6. Do not check a third
+   time.
+
+6. Call lookup_supplier once with the supplier name printed on the document.
    Use the supplier_id it returns, or null when found is false.
 
-6. Call save_invoice_record once with your finished record.
+7. Call save_invoice_record once with your finished record. An invoice that
+   does not add up is still saved; the store flags it.
 
-7. Return that same record as your answer.
+8. Return that same record as your answer.
 
 Two rules that override everything above.
 

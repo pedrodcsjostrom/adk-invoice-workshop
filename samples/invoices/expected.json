@@ -106,5 +106,29 @@
     "line_sum": 950.2,
     "stated_total": 950.2,
     "validation_passes": true
+  },
+  {
+    "file": "10-ridgeway-terms-charge.pdf",
+    "purpose": "The workshop centrepiece. A fourth charge of 480.00 is stated as a sentence in the terms rather than as a table row, and is inside the total. The table alone comes up 480.00 short; the terms reconcile it exactly.",
+    "supplier_printed": "Ridgeway Facilities Management",
+    "invoice_number": "RFM-2026-0918",
+    "invoice_date": "2026-03-30",
+    "currency": "GBP",
+    "line_count": 4,
+    "line_sum": 4037.0,
+    "stated_total": 4037.0,
+    "validation_passes": true
+  },
+  {
+    "file": "11-kestrel-credit-line.pdf",
+    "purpose": "A credit row printed as \"620.00 CR\" instead of a negative number. Read the sign as printed and the invoice is out by 1,240.00; read the CR and it reconciles.",
+    "supplier_printed": "Kestrel Analytics LLC",
+    "invoice_number": "KA-2026-0331",
+    "invoice_date": "2026-03-31",
+    "currency": "USD",
+    "line_count": 4,
+    "line_sum": 4820.0,
+    "stated_total": 4820.0,
+    "validation_passes": true
   }
 ]

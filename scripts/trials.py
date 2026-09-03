@@ -34,6 +34,7 @@ os.environ["INVOICE_RECORDS_PATH"] = os.path.join(
 from google.adk.runners import InMemoryRunner  # noqa: E402
 from google.genai import types  # noqa: E402
 
+from invoice_agent import registry  # noqa: E402
 from invoice_agent.agent import root_agent  # noqa: E402
 from invoice_agent.models import InvoiceRecord  # noqa: E402
 
@@ -126,8 +127,12 @@ def judge(run: dict, expected: dict) -> tuple[bool, list[str]]:
         problems.append(f"line sum {line_sum}, want {expected['line_sum']}")
     if round(record.total, 2) != expected["stated_total"]:
         problems.append(f"total {record.total}, want {expected['stated_total']}")
-    if expected["validation_passes"] and record.supplier_id is None:
-        problems.append("supplier unresolved")
+    # The supplier should resolve exactly when the registry knows the printed
+    # name, so 09-unknown-supplier.pdf is expected to come back with a null id.
+    known = registry.find(expected["supplier_printed"])
+    want_id = known["supplier_id"] if known else None
+    if record.supplier_id != want_id:
+        problems.append(f"supplier_id {record.supplier_id!r}, want {want_id!r}")
 
     saved = [c for c in run["checks"] if "saved_passed" in c]
     if not saved:
