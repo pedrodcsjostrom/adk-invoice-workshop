@@ -2,7 +2,14 @@
 
 **Status: rough, unreviewed, unrehearsed.** Ticket [#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32). Six slides. Reads against [`run-of-show.md`](run-of-show.md); the narration for the dead windows is in [`speaker-notes.md`](speaker-notes.md).
 
-Tool-agnostic on purpose — this is the content, not the deck file. Marp or reveal.js will render it as-is; so will retyping it into Slides in twenty minutes. Do not build the real deck until the content survives [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15).
+This file is the **content**. [`deck.marp.md`](deck.marp.md) is a renderable Marp version of the same six slides, for looking at:
+
+```
+npx --yes @marp-team/marp-cli --no-stdin docs/deck.marp.md -o deck.pdf
+npx --yes @marp-team/marp-cli --no-stdin docs/deck.marp.md --preview   # live
+```
+
+Marp is a convenience, not a commitment — retyping these six into Slides is twenty minutes. Do not build the real deck until the content survives [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15).
 
 ## Why six and not zero
 
