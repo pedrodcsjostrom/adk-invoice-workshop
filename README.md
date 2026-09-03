@@ -30,12 +30,31 @@ The developer UI, where you upload the PDF yourself:
 uv run adk web .
 ```
 
+Or the deployable, which is the same UI plus the records page on one port — the
+form Cloud Run runs:
+
+```bash
+uv run python -m invoice_agent.server   # http://localhost:8080/records
+```
+
+## Where the records go
+
+Nothing is configured on a laptop: saved records append to `.local_records.jsonl`
+and the analysed document is copied into `.local_archive/`. On Cloud Run,
+Terraform sets `FIRESTORE_DATABASE` and `INVOICE_BUCKET`, and the same calls
+write to Firestore and Cloud Storage instead. The records page reads whichever
+backend is live through the service's own identity, so there is no browser
+sign-in.
+
 Keep `GOOGLE_CLOUD_LOCATION=global`. `gemini-3.5-flash` is not served from
 `us-central1`, whatever the blog posts say.
 
 ## Layout
 
-- `invoice_agent/` — the agent: one `LlmAgent`, one tool, one output schema
+- `invoice_agent/` — the agent: one `LlmAgent`, three tools, one output schema
+- `invoice_agent/store.py` — records and archived documents, local or cloud
+- `invoice_agent/records.py` — the records page
+- `invoice_agent/server.py` — the deployable: developer UI plus records page
 - `scripts/make_invoice.py` — generates the sample invoice, `--big` for a 10 MB one
 - `scripts/smoke.py` — headless end-to-end check
 - `docs/research/` — what was verified, and how
