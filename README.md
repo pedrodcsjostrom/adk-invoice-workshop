@@ -87,9 +87,12 @@ for this workshop.
 - `scripts/preflight_check.sh` — what every attendee runs the day before
 - `scripts/teardown.sh` — destroys the stack and proves the project is empty
 - `docs/PREFLIGHT.md` — the attendee-facing setup, and `docs/preflight-email.md` for the host
+- `docs/host-runbook.md` — what the host does, day before and day of, with the commands
 - `infra/` — the Terraform stack every attendee applies to their own project
 - `docs/COST.md` — what the hour costs, and what survives a teardown
 - `docs/research/` — what was verified, and how
+
+`CONTEXT.md` at the root is the glossary the docs share.
 
 Planning for the kit lives on the issue tracker as
 [Map: 60-minute Google ADK invoice-analyzer workshop kit](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/1).
