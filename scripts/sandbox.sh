@@ -6,17 +6,27 @@
 #   scripts/sandbox.sh              create the project, deploy the agent, open it up
 #   scripts/sandbox.sh --teardown   shut the whole project down
 #
-# What the sandbox is: one Cloud Run service running the finished agent, open
-# to any signed-in Google account, reached with `gcloud run services proxy`.
-# A cold attendee uses Peter's deployed agent. They do not get a project of
-# their own, and they cannot run the agent locally — see the note on the grants
-# below for why Google makes that impossible, and what it costs the hour.
+# The sandbox is two things, and #37 is the ticket that pulled them apart:
+#
+#   1. One Cloud Run service running the finished agent, open to any signed-in
+#      Google account, reached with `gcloud run services proxy`. This is what a
+#      cold attendee watches during the three cloud blocks they cannot do.
+#   2. A plain model backend for an agent running on the attendee's OWN laptop.
+#      This is the important one. Everything from 0:05 to 0:18 is cloud-free,
+#      so a cold arrival points GOOGLE_CLOUD_PROJECT at this project and does
+#      the whole local half of the hour hands-on, in lockstep with the room.
+#
+# The second affordance needs a NAMED identity on the project policy, which is
+# why this script grants an open-join Google Group rather than a wildcard — see
+# the note in section 4 for the member types Google refuses and why.
 #
 # Run it the MORNING OF the workshop, not before, and tear it down the same day.
 # The service answers to every Google account on earth, and every invocation
 # spends Gemini tokens on Peter's billing account. The repo is public (#27), so
 # the project id cannot live in it either: the id is generated with a random
-# suffix here, printed once, and belongs on a slide and nowhere else.
+# suffix here, printed once, and belongs on a slide and nowhere else. The group
+# address has the same posture and for the same reason, so it is read from the
+# environment or from state, never hardcoded here.
 #
 # Requires: gcloud authenticated as the account that owns the billing account,
 # terraform, and an open billing account. The account must be OUTSIDE any
@@ -35,6 +45,14 @@ SERVICE="${SERVICE:-invoice-agent}"
 STATE_DIR="${SANDBOX_STATE_DIR:-$HOME/.adk-invoice-sandbox}"
 STATE="$STATE_DIR/terraform.tfstate"
 ID_FILE="$STATE_DIR/project-id"
+
+# The access group (#37). Created ONCE by hand at groups.google.com on Peter's
+# account, join policy "anyone on the web can join" so a cold arrival joins
+# themselves off a QR code and Peter does no live admin. It outlives every
+# sandbox, which is exactly why it is not generated here: the project id is
+# regenerated per run, the group is not.
+GROUP_FILE="$STATE_DIR/access-group"
+GROUP="${SANDBOX_GROUP:-$(cat "$GROUP_FILE" 2>/dev/null || true)}"
 
 say()  { printf '\n\033[1m%s\033[0m\n' "$*"; }
 ok()   { printf '  \033[32mv %s\033[0m\n' "$*"; }
@@ -57,6 +75,21 @@ if [[ "${1:-}" == "--teardown" ]]; then
   rm -f "$STATE" "$ID_FILE"
   ok "Project scheduled for deletion. The open IAM grants die with it."
   warn "Deletion is reversible for 30 days: gcloud projects undelete $PROJECT_ID"
+
+  # The group does NOT die with the project, and that is the whole hazard. Its
+  # binding does — the policy went with the project — but the membership list
+  # survives, so the next stand-up would re-grant this workshop's attendees on
+  # a fresh project without anyone asking for it. Empty it.
+  #
+  # This step is manual because a consumer @googlegroups.com group belongs to
+  # no Cloud Identity customer, so `gcloud identity groups memberships` cannot
+  # reach it. There is no CLI for this; the UI is the API.
+  if [[ -n "$GROUP" ]]; then
+    warn "NOT DONE FOR YOU — empty the access group, or this workshop's"
+    warn "attendees are pre-granted on the next sandbox:"
+    printf '\n    https://groups.google.com/g/%s/members\n\n' "${GROUP%@*}"
+    printf '    Select all, Remove members. Keep the group and its join policy.\n\n'
+  fi
   exit 0
 fi
 
@@ -135,45 +168,89 @@ gcloud run services add-iam-policy-binding "$SERVICE" \
   --member=allAuthenticatedUsers --role=roles/run.viewer >/dev/null
 ok "run.invoker + run.viewer on $SERVICE"
 
-# What is NOT granted, because Google does not allow it. Opening Vertex to an
-# unknown Google account would need roles/aiplatform.user on the PROJECT, and
-# Cloud Resource Manager refuses the member type outright:
+# --- 4b. Vertex for agents running on attendee laptops ----------------------
+# Wildcards are refused on a PROJECT policy, which is what #13 hit:
 #
 #   PROJECT_SET_IAM_DISALLOWED_MEMBER_TYPE
 #   Policy members must be prefixed of the form '<type>:<value>', where <type>
 #   is 'domain', 'group', 'serviceAccount', or 'user'.
 #
-# This has nothing to do with organization policy — it is true on this org-free
-# project. allUsers and allAuthenticatedUsers are accepted on a *resource*
-# policy, like the Cloud Run service above, and refused on a *project* policy.
+# Nothing to do with organization policy — it is true on this org-free project.
+# allUsers and allAuthenticatedUsers work on a *resource* policy, like the
+# Cloud Run service above, and are refused on a *project* policy. But `group`
+# is on the allowed list, which is the door the refusal message was holding
+# open all along (#37). An open-join group is a named identity that a stranger
+# can put themselves inside.
 #
-# The consequence is a hole this script cannot close. A cold attendee reaches
-# the deployed agent, but cannot run `adk web` against this project, so they
-# never run an agent of their own — and the hour's one mandatory exercise (#11)
-# is watching *your own* agent check the arithmetic twice. Closing it needs a
-# named identity: Peter adding each cold arrival by email during the session, or
-# a group prepared in advance. That is a decision, not a provisioning step; it
-# is left as an open question on #13.
+# TWO roles, and the second is not optional. roles/aiplatform.user carries 446
+# permissions and not one of them is under serviceusage, checked against the
+# live role definition. Both `application-default login` and the
+# x-goog-user-project header the global endpoint needs (#12) require
+# serviceusage.services.use on the quota project, so a group granted only the
+# first role gets a 403 at 0:18 — in the middle of the segment this exists to
+# protect.
+if [[ -z "$GROUP" ]]; then
+  warn "No access group. Set SANDBOX_GROUP or write $GROUP_FILE."
+  warn "The deployed service still works, but a cold attendee CANNOT run their"
+  warn "own agent — which is the one thing #11 says everyone must leave having"
+  warn "done. Fallback is per-email, once you have their address:"
+  printf '\n    gcloud projects add-iam-policy-binding %s \\\n' "$PROJECT_ID"
+  printf '      --member=user:THEIR_EMAIL --role=roles/aiplatform.user\n'
+  printf '    gcloud projects add-iam-policy-binding %s \\\n' "$PROJECT_ID"
+  printf '      --member=user:THEIR_EMAIL --role=roles/serviceusage.serviceUsageConsumer\n\n'
+else
+  say "Granting Vertex to the access group"
+  for ROLE in roles/aiplatform.user roles/serviceusage.serviceUsageConsumer; do
+    gcloud projects add-iam-policy-binding "$PROJECT_ID" \
+      --member="group:$GROUP" --role="$ROLE" >/dev/null
+    ok "$ROLE on group:$GROUP"
+  done
+
+  # Membership propagates to IAM on Google's schedule, not on ours. The run of
+  # show leans on the thirteen minutes between triage at 0:01 and the first
+  # model call at 0:18 absorbing it.
+  warn "Group membership takes minutes to reach IAM. Existing members are"
+  warn "granted from now; anyone joining during the session waits."
+fi
 
 # --- 5. the handout ---------------------------------------------------------
 say "The handout — put this on a slide, not in the repo"
 cat <<HANDOUT
 
   Project:  $PROJECT_ID
-  Region:   $REGION
-  Service:  $SERVICE
+  Group:    ${GROUP:-<none — cold attendees cannot run their own agent>}
 
-  No credentials. Sign in with any Google account, then reach the agent:
+  What a cold arrival does, in this order. No credentials, no project of
+  their own. They run the whole local half of the hour on their laptop.
 
-    gcloud auth login
+  1. Join the group, FIRST, before the clone — membership needs minutes to
+     reach IAM and the clone is what fills them.
+
+  2. Two lines in .env:
+
+       GOOGLE_CLOUD_PROJECT=$PROJECT_ID
+       GOOGLE_CLOUD_LOCATION=global
+
+  3. Sign in and point the quota project at the sandbox:
+
+       gcloud auth application-default login
+       gcloud auth application-default set-quota-project $PROJECT_ID
+
+  Then clone and do exactly what the room does, from 0:05 to 0:39.
+
+  During the three cloud blocks they have nothing to apply, so that is when
+  they watch the deployed service — including the records page, which is the
+  one thing the local JSON Lines default cannot show them:
+
     gcloud run services proxy $SERVICE --region $REGION --project $PROJECT_ID
 
-  Open http://localhost:8080 and use the agent there.
-
-  The proxy needs one component, which is a separate package on apt gcloud:
+  The proxy needs one component, a separate package on apt gcloud:
 
     sudo apt-get install google-cloud-cli-cloud-run-proxy
 
 HANDOUT
 
 warn "Tear it down the same day: scripts/sandbox.sh --teardown"
+warn "Teardown deletes the project but cannot empty the group — it prints that"
+warn "step for you to do by hand. Do it, or these attendees are pre-granted on"
+warn "the next sandbox."

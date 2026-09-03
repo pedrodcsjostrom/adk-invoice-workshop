@@ -42,7 +42,19 @@ Then 60 seconds of the finished thing on Peter's already-deployed service: uploa
 
 Say out loud, once, the thing that makes the hour make sense: **the failure is designed, and it is the point.** Otherwise the best minute of the hour reads as a bug.
 
-**Cold-arrival triage happens here, in the first 60 seconds.** Hands up for anyone whose pre-flight did not pass. They get the sandbox handout ([#13](https://github.com/pedrodcsjostrom/invoice_analysis/issues/13)) — project id and service name, no credentials — and start their clone now. They run one segment behind until the first `solutions/` copy pulls them level. That is what the escape hatch is for.
+**Cold-arrival triage happens here, in the first 60 seconds.** Hands up for anyone whose pre-flight did not pass. Put the sandbox slide up and give them three instructions, in this order ([#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37)):
+
+1. **Join the group now**, before anything else — QR code on the slide. Membership takes minutes to reach IAM, and the next thirteen minutes are what pays for it.
+2. **Two lines in `.env`**: `GOOGLE_CLOUD_PROJECT=<sandbox id>` and `GOOGLE_CLOUD_LOCATION=global`.
+3. **`gcloud auth application-default login`**, then `gcloud auth application-default set-quota-project <sandbox id>`.
+
+Then clone, and do exactly what everyone else does.
+
+**They are not behind, and they are not watching.** The sandbox is their model backend, not a service they visit — their agent runs on their own laptop like everyone else's. From 0:05 to 0:39 they are in lockstep: the red pytest, fill-in one, `adk web`, the rigged invoice, the re-read. Nothing from 0:05 to 0:18 touches cloud at all, and persistence defaults to a JSON Lines file on disk, so the only thing they need a project for is the model.
+
+**Say out loud what they lose, rather than letting them find it.** Three blocks: the Terraform apply at 0:14, the build at 0:30, the collection at 0:39. They have no project of their own and no deploy rights on the sandbox, so during those they watch the front of the room — and that is when they use the deployed sandbox service to see a records page, which their local file cannot render. Everything else in the hour is theirs, including the one thing every attendee must leave having done: their own agent checking the arithmetic twice.
+
+If someone's join does not take, grant them by email on the spot — effective the instant the command returns, which is why it is the fallback rather than the default.
 
 ## 0:05 — 0:09 · The repo, and one command (4 min)
 
@@ -84,7 +96,9 @@ Thirty-eight seconds, nine resources ([#8](https://github.com/pedrodcsjostrom/in
 
 While it runs: anyone still red on the gap test copies the solution file, and the loop gets explained with the instruction on screen. An agent is a model, a set of tools, and an instruction, run in a loop until it stops asking for tools. Show `INSTRUCTION` as it currently ships — steps 1, 2 and 5-8 present, steps 3 and 4 fenced and empty. As it stands the agent extracts, checks the arithmetic once, and saves.
 
-**This is the diversion point.** Anyone whose apply fails goes to the sandbox now, with twenty minutes of runway and nothing important missed. Do not debug an individual project from the front of the room.
+**This is the diversion point.** Anyone whose apply fails takes the cold-arrival handout now — join the group, repoint `.env` and the quota project at the sandbox — with twenty minutes of runway and nothing important missed. They lose the deploy and keep the payoff. Do not debug an individual project from the front of the room.
+
+The one cost of arriving here rather than at 0:01 is that the group join has four minutes to propagate instead of thirteen. If it has not taken by 0:18, grant them by email; that is instant.
 
 ## 0:18 — 0:25 · First run, local (7 min)
 
