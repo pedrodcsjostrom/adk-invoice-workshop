@@ -44,15 +44,25 @@ Work through these steps in order.
 # agent back to the document, then make it check a second time.
 #
 # Prose, not code. Write it in your own words — this is what puts "the agent
-# went back to the document" on screen. Empty is a valid agent: run it first,
-# watch it accept its own reading, then come back here.
-#
-# There is no test for this one. The run is the test.
+# went back to the document" on screen.
 #
 # Behind, or want the version this was tuned to? One command:
 #     cp solutions/agent.py invoice_agent/agent.py
 
-_STEPS_RE_READ = ""
+_STEPS_RE_READ = """\
+3. If the check reports ok=false, do not accept your reading yet. Go back to
+   the document and read it a second time, looking for what the first pass
+   could have got wrong. In order of likelihood: a charge line you did not
+   include, often a deposit, delivery, surcharge or adjustment printed below
+   the table rule, in the terms, or on a later page; a credit that should be
+   negative, printed as a positive number with CR beside it; a quantity or
+   unit price read off the wrong row.
+
+4. Call check_invoice_arithmetic a second time with the reading you now
+   believe. Do this even when the second look changed nothing — the second
+   check is what records the outcome of going back.
+
+"""
 
 # ===== END FILL-IN 2 ==========================================================
 
