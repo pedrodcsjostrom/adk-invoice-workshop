@@ -19,7 +19,7 @@
 
 set -uo pipefail
 
-VERSION="2"
+VERSION="3"
 
 # ---------------------------------------------------------------- settings --
 
@@ -546,7 +546,10 @@ else
     endpoint="https://${MODEL_LOCATION}-aiplatform.googleapis.com"
   fi
   url="$endpoint/v1/projects/$PROJECT_ID/locations/$MODEL_LOCATION/publishers/google/models/$MODEL:generateContent"
-  body=$(mktemp)
+  # mktemp needs an explicit template: the BSD mktemp on macOS refuses a bare
+  # `mktemp`, and this is the one check whose failure the attendee cannot read
+  # past, so it must not fall over on half the room's laptops.
+  body=$(mktemp "${TMPDIR:-/tmp}/preflight.XXXXXX")
   code=$(curl -s -o "$body" -w '%{http_code}' -X POST \
     -H "Authorization: Bearer $ADC_TOKEN" \
     -H "Content-Type: application/json" \

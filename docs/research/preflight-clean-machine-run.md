@@ -110,14 +110,67 @@ wait** for API enablement in step 3 — a third of the budget on its own, and th
 one part no amount of bandwidth shortens. `PREFLIGHT.md` now says this, and
 tells the reader to start step 3 early and do the rest while it settles.
 
+## The bash 3.2 question, settled
+
+The shell half of the macOS worry is now closed. GNU bash 3.2.0 was built from
+source in a container and the whole script run under it, on a machine with no
+gcloud, no terraform, no uv and no Python.
+
+The hazard is real. Under `set -u`, bash 3.2 treats an expansion of an empty
+array as an unbound variable and dies:
+
+```
+$ A=(); printf '%s\n' "${A[@]}"
+line 7: A[@]: unbound variable
+```
+
+The guard is not. `${#A[@]}` on the same empty array is fine in 3.2 and
+returns `0`, which is what every one of the script's thirteen array expansions
+sits behind — either `[[ ${#A[@]} -gt 0 ]]` before the expansion, or the `else`
+arm of `-eq 0`, where the array cannot be empty. The full run confirms it: the
+script reaches its report block, prints `fix yourself:` and `warnings:`, and
+correctly prints no `needs an admin:` section, which is the empty-array branch
+being taken rather than avoided. Exit was clean with no unbound-variable error
+anywhere.
+
+So the script is safe on the bash every Mac ships. What that does **not** cover
+is BSD userland, which is a different question from the shell version, and it
+turned up one real defect.
+
+### `mktemp` with no template, in the check that matters most
+
+Section 7 opened its response buffer with a bare `body=$(mktemp)`. GNU coreutils
+allows that; BSD `mktemp`, which is what macOS ships, wants a template. When it
+refuses, `body` is empty, `curl -o ""` cannot write, `$code` comes back empty,
+and the model check falls through to its catch-all arm — so a Mac attendee whose
+machine is perfect gets NOT READY on the one check that proves the hour works,
+under a message reading `the model call failed with HTTP` with nothing after it.
+
+This is the same shape as the `python3` bug above: the script failing a machine
+that is fine. It is now `mktemp "${TMPDIR:-/tmp}/preflight.XXXXXX"`, which both
+implementations accept. Verified equivalent on Linux; the macOS failure is
+inferred from BSD `mktemp` requiring a template, not observed on a Mac.
+
+### `sort -V`, still open
+
+`at_least()` compares versions with `sort -V`, and that flag is a GNU extension
+that BSD sort has picked up only recently. It is left alone rather than guessed
+at, because a wrong rewrite silently mis-compares every version in the script.
+One command on any Mac settles it:
+
+```
+printf '2\n10\n' | sort -V | head -1     # prints 2 if -V works, 10 if it does not
+```
+
+If that prints `10`, `at_least` is broken on macOS and the gcloud, terraform and
+Python version checks are all unreliable there.
+
 ## Not covered here
 
-- **macOS and Windows.** Only Linux was run. The `dpkg` branches of the
-  proxy check are Linux-only; a macOS attendee falls through to the generic
-  remedy, which is right for the tarball SDK and unverified for Homebrew. The
-  script's shebang is `/usr/bin/env bash` and macOS ships bash 3.2, where an
-  unguarded empty-array expansion under `set -u` is fatal; the script guards
-  every one, but that has not been executed on 3.2.
+- **macOS end to end, and Windows.** No Mac was run. The shell is settled above
+  and one BSD defect is fixed, but the `dpkg` branches of the proxy check are
+  Linux-only, so a macOS attendee falls through to the generic remedy, which is
+  right for the tarball SDK and unverified for Homebrew. `sort -V` is untested.
 - **`tests/test_gap_arithmetic.py`** does not exist on this branch — it arrives
   with [#25](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/25)
   in PR #29. The script guards for its absence and skips. `PREFLIGHT.md`'s "you
