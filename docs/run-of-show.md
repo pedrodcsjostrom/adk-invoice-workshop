@@ -46,10 +46,26 @@ Then 60 seconds of the finished thing on Peter's already-deployed service: uploa
 
 Say out loud, once, the thing that makes the hour make sense: **the failure is designed, and it is the point.** Otherwise the best minute of the hour reads as a bug.
 
-**Cold-arrival triage happens here, in the first 60 seconds.** Hands up for anyone whose pre-flight did not pass. They get the sandbox handout ([#13](https://github.com/pedrodcsjostrom/invoice_analysis/issues/13)) — project id and service name, no credentials — and start their clone now. They run one segment behind until the first `solutions/` copy pulls them level. That is what the escape hatch is for.
+**Cold-arrival triage happens here, in the first 60 seconds.** Hands up for
+anyone whose pre-flight did not pass. They get the sandbox handout ([#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13),
+[#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37)) and start their clone now. Three lines: **join the group first**, because
+membership takes minutes to reach IAM; two `.env` lines pointing
+`GOOGLE_CLOUD_PROJECT` at the sandbox with `GOOGLE_CLOUD_LOCATION=global`; then
+`gcloud auth application-default login` and set the quota project.
 
-> [!WARNING]
-> **That last sentence does not survive [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13).** The sandbox is only the deployed service: `allAuthenticatedUsers` is refused on a project-level IAM policy, so a cold arrival cannot be granted Vertex on it and cannot run an agent of their own at all. They watch the payoff rather than producing it, which is the one thing this outline says every attendee must leave having done. A fallback attendee who "runs one segment behind" does not exist as built. [#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37) decides what they actually do, and this paragraph is rewritten when it lands.
+They are then **in lockstep with the room from 0:05**, not a segment behind.
+The sandbox project acts as their model backend while the agent runs on their
+own laptop, so they type both fill-ins, run `adk web`, and watch their own agent
+check the arithmetic twice — the one thing above. What they miss is the three
+cloud blocks at 0:14, 0:30 and 0:39, because they have no project of their own
+and no deploy rights on the sandbox. **Say that out loud rather than letting
+them discover it at 0:40.**
+
+The thirteen minutes between the join at 0:01 and the first model call at 0:18
+is what covers the propagation delay, and it is a gift of the local-first
+ordering rather than something designed for it. A 403 at 0:18 means the join
+has not taken: fall back to one `add-iam-policy-binding` per person, which is
+effective the instant it returns.
 
 ## 0:05 — 0:09 · The repo, and one command (4 min)
 

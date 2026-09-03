@@ -155,27 +155,37 @@ in the shell unless the terminal was replaced. See [`DEPLOY.md`](DEPLOY.md).
 
 The named diversion point is **0:14**, the moment the first apply finishes. It is also the only moment in the hour where one person's broken project can eat everyone else's time, so it is scripted rather than handled.
 
-**The line, said once, to the whole room** — *provisional, and the second sentence is currently untrue; see the warning below:*
+**The line, said once, to the whole room:**
 
-> If your apply just failed — do not debug it now. Come and use the sandbox. It is on the slide, it takes about three minutes, and you will not miss anything that matters: everything between here and 0:39 runs on your laptop.
+> If your apply just failed — do not debug it now, and do not worry about it.
+> There is a sandbox, it is on the slide, and it takes about three minutes.
+> Join the group first, before anything else, because that is the part that
+> has to travel. Then the two `.env` lines and the login, and you are doing
+> exactly what everyone else is doing. You will miss the deploy at the end.
+> You will not miss the part this hour is actually about.
 
-> [!WARNING]
-> **Do not say the second half of that line until [#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37) lands.**
-> [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13) stood the sandbox up and found that the reassurance is false as built. `allAuthenticatedUsers` is refused on a project-level IAM policy, so a cold attendee cannot be granted Vertex on the sandbox project and cannot run `adk web` against it. What "everything runs on your laptop" was promising — that they build their own agent and only the *deploy* is borrowed — is exactly what the sandbox cannot give them. They reach Peter's finished agent through the proxy and watch.
->
-> The hole is real and it is the hour's one mandatory exercise, so the fix is a decision, not a form of words. Until #37 answers it, say only the first half: do not debug now, come and use the sandbox.
+**Say the last two sentences.** They are true now and they were not in the
+draft. [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13) found that a cold arrival could not run an agent at all, and
+[#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37) fixed it with an open-join Google Group granted on the sandbox project
+— which turns the sandbox from a service they watch into a **model backend for
+the agent on their own laptop**. They are in lockstep with the room from 0:05
+and diverge only at the three cloud blocks.
 
-**What goes on screen:** slide 2, the same slide they saw at 0:01. Project id, service name, two commands, no credentials. Showing the *same* slide is the point — it should read as a planned route, not a rescue.
+**Do not soften "you will miss the deploy".** It is a real loss and it should
+be said out loud here rather than discovered at 0:40. Naming it costs four
+words and buys the rest of the sentence its credibility.
+
+**What goes on screen:** slide 2, the same slide they saw at 0:01 — the group address, the two `.env` lines, the login. Showing the *same* slide is the point: it should read as a planned route, not a rescue.
 
 **The rules, for Peter:**
 
 1. **Do not debug an individual project from the front.** Not once. The slide is the help.
 2. **Do not ask what the error was.** It invites a diagnosis in front of forty people. The sandbox works regardless of the error.
-3. **Keep moving.** The room continues to 0:18 on schedule; the diverted attendee catches up during the first run, which is local and needs nothing from the cloud.
+3. **Keep moving.** The room continues to 0:18 on schedule. The diverted attendee catches up during the first run, which is local, and their group membership is propagating through exactly that window — thirteen minutes of cushion between the join at 0:01 and the first model call at 0:18. If they are still 403 at 0:18, that is the per-email fallback: one `add-iam-policy-binding` on the sandbox project, effective the moment it returns.
 4. **If more than about a quarter of the room fails**, that is not a diversion, that is the pre-flight having failed — announce that everyone is on the sandbox, and drop the second apply and the teardown from the plan. Say nothing else about it.
 5. **A helper**, if one is available, takes the diverted attendees at the back. If not, the slide does.
 
-**The thing that makes this survivable** is already true and worth saying out loud once at 0:14: the payoff is local. A cloud failure at this point costs a deployment, not the workshop.
+**The thing that makes this survivable** is already true and worth saying out loud once at 0:14: the payoff is local. A cloud failure at this point costs a deployment, not the workshop — and after #37, that is true of the cold arrival too, not just of the attendee whose apply failed halfway.
 
 ---
 

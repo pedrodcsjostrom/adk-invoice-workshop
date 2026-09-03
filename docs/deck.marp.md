@@ -26,21 +26,28 @@ style: |
 
 ---
 
-# Pre-flight did not pass? Use the sandbox.
+# Pre-flight did not pass? Three lines and you are with us.
 
-**Project:** `adk-sandbox-________`  ·  **Service:** `invoice-agent`  ·  **Region:** `europe-west1`
+**1 · Join the group** — `________@googlegroups.com` `[ QR ]` — do this first, it takes a few minutes to take effect.
+
+**2 · Put these in your `.env`:**
 
 ```
-gcloud auth login
-gcloud run services proxy invoice-agent \
-  --region europe-west1 --project adk-sandbox-________
+GOOGLE_CLOUD_PROJECT=adk-sandbox-________
+GOOGLE_CLOUD_LOCATION=global
 ```
 
-Then open `http://localhost:8080`.
+**3 · Then:**
 
-No credentials, no keys. Sign in with the Google account you already have.
+```
+gcloud auth application-default login
+gcloud auth application-default set-quota-project adk-sandbox-________
+```
 
-<!-- Proxy missing? sudo apt-get install google-cloud-cli-cloud-run-proxy -->
+### Now clone, and do everything the room does.
+You skip only the three deploy steps. The part that matters is yours.
+
+<!-- Blanks are filled in by hand on the day. Never commit real values. -->
 
 ---
 

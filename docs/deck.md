@@ -61,32 +61,41 @@ The projector is then free to show whatever the minute needs.
 
 ## Slide 2 — Cold arrival / the sandbox · 0:01 and again at 0:14
 
-> ### Pre-flight did not pass? Use the sandbox.
+> ### Pre-flight did not pass? Three lines and you are with us.
 >
-> **Project:** `adk-sandbox-________`
-> **Service:** `invoice-agent` **Region:** `europe-west1`
+> **1 · Join the group** — `________@googlegroups.com` [ QR code ]
+> Do this first. It takes a few minutes to reach IAM, and you have thirteen.
+>
+> **2 · Two lines in your `.env`:**
 >
 > ```
-> gcloud auth login
-> gcloud run services proxy invoice-agent \
->   --region europe-west1 --project adk-sandbox-________
+> GOOGLE_CLOUD_PROJECT=adk-sandbox-________
+> GOOGLE_CLOUD_LOCATION=global
 > ```
 >
-> Then open `http://localhost:8080`.
+> **3 · Then authenticate:**
 >
-> No credentials, no keys. Sign in with the Google account you already have.
+> ```
+> gcloud auth application-default login
+> gcloud auth application-default set-quota-project adk-sandbox-________
+> ```
+>
+> **Now clone, and do everything the room does.**
+> You skip only the three deploy steps. The part that matters is yours.
 
 *Also printed as the handout — same content, same words, so the slide and the paper agree.*
 
-**[#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13) has landed, and it changes this slide twice.**
+**This slide was rewritten twice, and the second rewrite is the interesting one.**
 
-The service name and region are fixed and can be printed now; only the project id is a blank, because the repo is public and the id is the only thing standing between it and an open Gemini budget. `scripts/sandbox.sh` generates it with a random suffix on the morning of the workshop and prints the handout block this slide copies. **Fill the blank in by hand on the day.** The slide file must never be committed with a real id in it.
+The draft carried a `gcloud run services proxy` command and a reassurance that everything up to 0:39 ran on the attendee's laptop. [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13) falsified the reassurance — `allAuthenticatedUsers` is refused on a project-level IAM policy, so a cold arrival could not be granted Vertex and could not run an agent at all — and the line was deleted rather than reworded, because a comforting sentence would have hidden the hole rather than closed it.
 
-The reassurance that was here has been **removed, not reworded**: *"You will not miss the important part — everything up to 0:39 runs on your laptop."* That is false as built. `allAuthenticatedUsers` is refused on a project-level IAM policy, so a cold attendee cannot be granted Vertex access on the sandbox project and therefore cannot run `adk web` at all. They reach Peter's already-built agent through the proxy and watch the payoff instead of producing it — which is exactly the one thing [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11) says every attendee must leave having done. **[#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37) owns that decision, and this slide cannot be finished before it lands.** Writing a comforting line here would only hide the hole.
+[#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37) then closed it properly, and the slide inverts. A **Google Group** is on the very list of member types #13's error message named as allowed, so an open-join group granted on the sandbox project makes it a *model backend* for an agent running on the attendee's own laptop. A cold arrival does the whole local half hands on, in lockstep with the room, and misses only the three cloud blocks. So the proxy command comes off this slide: it was the old plan's centrepiece, and under the new one a cold attendee never needs it.
 
-One practical note worth a footer or a spoken aside: the proxy needs a component that is a separate package on an apt gcloud, `sudo apt-get install google-cloud-cli-cloud-run-proxy`. [#12](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/12) established it is installable after all, correcting the write-off in [#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8) and [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22), and the pre-flight now checks for it — so this should only ever bite a genuinely cold arrival, which is precisely the person looking at this slide.
+**Two blanks, both filled in by hand on the day, neither ever committed.** The project id is regenerated per run by `scripts/sandbox.sh`, and the group address takes the same posture — an open-join group granted on the project is a live door for anyone who learns it.
 
----
+**The quota-project line is not optional.** #37 checked the live role definition: `roles/aiplatform.user` carries 446 permissions and none of them is under `serviceusage`, so the group needs `roles/serviceusage.serviceUsageConsumer` as well, and the attendee needs the quota project set. Without either, they get a 403 at 0:18 — inside the segment this whole arrangement exists to protect.
+
+**Timing is why the join is step one.** Group membership takes minutes to reach IAM. Triage is at 0:01 and the first model call is at 0:18, so the cushion is thirteen minutes of productive local work. That cushion is a gift of the local-first ordering rather than something designed for it, and it is still unmeasured — [#40](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/40) proves the path.
 
 ## Slide 3 — The loop · 0:14, over the first apply
 
@@ -133,9 +142,10 @@ Footer: `cp solutions/tools.py invoice_agent/tools.py` · `cp solutions/agent.py
 
 ## Open on the deck
 
-1. **Slide 2 is blocked on [#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37)**, not on [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13) any more. #13 gave it the service name and region; what it still lacks is an honest answer to what a cold attendee actually *does*. The project id is a deliberate day-of blank and is not an open question.
+1. ~~Slide 2's placeholders.~~ **Settled.** [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13) and [#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37) between them decided what the slide says. Two blanks remain by design, the sandbox project id and the group address, both filled in by hand on the day and never committed. [#40](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/40) stands the group up and proves the path; until it does, the slide describes a route nobody has walked.
 2. **Feedback capture** on slide 5 is unspecified — it is still in the map's fog.
 3. ~~Whether the gaps slide earns its place.~~ **Cut.** Peter's call; the words moved into the 0:05 narration.
-4. **QR code generation** is not done. Two of them, same URL.
-5. **"The escape hatch" is singular in the run of show** and there are two. Worth a one-line correction to [`run-of-show.md`](run-of-show.md) at 0:05, where it currently prints only the `tools.py` line.
-6. **The Terraform directory is `infra/`, not `terraform/`.** Found while checking the narration commands against [`DEPLOY.md`](DEPLOY.md). The repo tour at 0:05 and the run of show both said `terraform/`, and W1's script said `cd terraform`. Corrected in the notes and the outline; nothing on the slides themselves named it.
+4. **QR codes are not generated.** Three now, not two: `bit.ly/adk-invoices` on slides 1 and 5, and the group join page on slide 2. The last one cannot be made until the group exists.
+5. ~~"The escape hatch" is singular in the run of show.~~ **Corrected**, both lines now printed at 0:05.
+6. ~~The Terraform directory.~~ **Corrected** to `infra/` in the notes and the outline. Found by checking the narration commands against [`DEPLOY.md`](DEPLOY.md), which also caught the missing `-var "image=$IMAGE"` on the second apply.
+7. **Nothing here has been said out loud.** [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is the test, and it must walk the cold-arrival path as well as the main one.
