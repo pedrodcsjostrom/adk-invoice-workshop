@@ -56,7 +56,18 @@ def lookup_supplier(supplier_name: str) -> dict:
 
 
 def check_invoice_arithmetic(line_items: list[LineItem], total: float) -> dict:
-    raise NotImplementedError("fill-in 1: write this tool, docstring included")
+    """Check that the invoice adds up, to the cent.
+
+    Verifies that every line's quantity times unit price equals its printed
+    amount, and that the line amounts sum to the printed total. Pass the numbers
+    exactly as you read them off the document. Reports what disagrees; it does
+    not correct anything.
+
+    Args:
+        line_items: Every charge line you read off the invoice.
+        total: The total as printed on the invoice.
+    """
+    return validation.check(line_items, total)
 
 
 # ===== END FILL-IN 1 ==========================================================
