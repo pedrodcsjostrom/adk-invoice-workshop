@@ -67,7 +67,9 @@ fi
 # Random suffix, because the id is the only thing standing between a public
 # repo and an open Gemini budget.
 PROJECT_ID="${SANDBOX_PROJECT:-adk-sandbox-$(head -c4 /dev/urandom | od -An -tx1 | tr -d ' \n')}"
-BILLING="${BILLING_ACCOUNT:-$(gcloud billing accounts list --filter='open=true' --format='value(name)' --limit=1)}"
+# No --limit here. gcloud applies it BEFORE the filter, so --limit=1 takes the
+# first account and then filters it out, silently yielding nothing.
+BILLING="${BILLING_ACCOUNT:-$(gcloud billing accounts list --filter=open=true --format='value(name)' | head -1)}"
 if [[ -z "$BILLING" ]]; then
   echo "No open billing account found. Set BILLING_ACCOUNT." >&2
   exit 1
