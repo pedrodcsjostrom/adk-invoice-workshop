@@ -2,3 +2,9 @@
 # development; this is the deployed subset, pinned to what the workshop proved.
 google-adk~=2.8
 uvicorn~=0.34
+# The Firestore backend (#9). store.py imports these lazily, so their absence
+# is invisible until the container actually reads or writes a record, which is
+# how the deployed image shipped without them: the records page returned 500
+# with ModuleNotFoundError: No module named 'google.cloud'.
+google-cloud-firestore~=2.21
+google-cloud-storage~=3.4
