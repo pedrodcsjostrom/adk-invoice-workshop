@@ -171,6 +171,7 @@ gaps are still gaps. A morning-of fix is a **new** tag — `workshop-2026-09-17.
 - `docs/host-runbook.md` — what the host does, day before and day of, with the commands
 - `infra/` — the Terraform stack every attendee applies to their own project
 - `docs/COST.md` — what the hour costs, and what survives a teardown
+- `docs/architecture/` — the architecture model of the deployed service, and the committed SVGs
 - `scripts/cut_workshop_tag.sh` — cuts the tag attendees clone
 - `docs/research/` — what was verified, and how
 

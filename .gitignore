@@ -14,3 +14,8 @@ samples/big_invoice.pdf
 # The laptop backend: records and archived documents when no cloud is configured
 .local_records.jsonl
 .local_archive/
+
+# Structurizr Lite writes layout and rendering state beside the DSL.
+docs/architecture/workspace.json
+docs/architecture/.structurizr/
+docs/architecture/.puml/

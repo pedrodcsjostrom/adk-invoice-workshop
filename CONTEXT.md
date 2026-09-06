@@ -4,8 +4,8 @@ A 60-minute hands-on workshop in which working engineers build a Google ADK
 invoice-analyzer agent and deploy it to their own Google Cloud project. The
 repo is both the agent and the kit for running the hour.
 
-Eight documents share the vocabulary below. It is written down here because a
-reader who picks up one of them has usually not read the other seven.
+Nine documents share the vocabulary below. It is written down here because a
+reader who picks up one of them has usually not read the other eight.
 
 ## The hour
 
@@ -105,6 +105,13 @@ _Avoid_: setup, prerequisites, onboarding
 
 ## The service
 
+**Deployed service**:
+The invoice analyzer in an attendee's own Google Cloud project — the upload
+page, the records page and the agent, in one private Cloud Run service that
+runs all three in the same process. The sandbox has one too, and it is the
+host's; unqualified, the term means the attendee's.
+_Avoid_: the app, the deployment, the hosted agent
+
 **Upload page**:
 The page on the deployed service where an attendee picks invoice documents and
 sends them to the agent. Replaces the ADK developer UI on Cloud Run; the
@@ -122,6 +129,13 @@ The set of documents picked on the upload page in one go. Each document is
 still analysed on its own; a batch is a convenience for the person picking,
 not a unit the agent ever sees.
 _Avoid_: job, queue, run, upload
+
+**Trace summary**:
+The one line `/analyze` returns beside each record, saying how many times the
+arithmetic check ran and what the last one said: `checked twice, still over by
+1,250.00`. The deployed half's whole view of a run, because there is no
+developer UI on the deployed service to open a full trace in.
+_Avoid_: the trace, the tool log, the run report
 
 **Origin shim**:
 The local process that deletes the `Origin` header on the way to the deployed
@@ -148,6 +162,20 @@ The arithmetic chain — every line's quantity times unit price equals its
 printed amount, and the amounts sum to the printed total, to one cent. The
 store decides `validation_passed`, not the agent.
 _Avoid_: verification, checking, auditing
+
+**Store**:
+The pair of functions every filed record and archived document goes through,
+backed by a JSON Lines file and a folder on a laptop and by Firestore and Cloud
+Storage on Cloud Run. Nothing above it can tell which is live, and it decides
+`validation_passed`.
+_Avoid_: the database, persistence, the records backend
+
+**Supplier registry**:
+The known suppliers and their aliases, a JSON file shipped in the repo and read
+once on import, that `lookup_supplier` matches a printed name against. Nothing
+writes to it. Named for the `supplier_id` it returns, which is the only part of
+it a record keeps.
+_Avoid_: vendor registry, company supplier registry
 
 **Document guard**:
 The `before_model_callback` that refuses any turn arriving without document
