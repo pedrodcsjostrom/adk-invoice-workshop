@@ -121,3 +121,10 @@ The arithmetic chain — every line's quantity times unit price equals its
 printed amount, and the amounts sum to the printed total, to one cent. The
 store decides `validation_passed`, not the agent.
 _Avoid_: verification, checking, auditing
+
+**Document guard**:
+The `before_model_callback` that refuses any turn arriving without document
+bytes, before the model is called. The kit's one rule enforced in code rather
+than in prompt text, because a pasted file path otherwise makes the agent
+invent an invoice and every trace still looks right.
+_Avoid_: validation, the attachment check, input validation

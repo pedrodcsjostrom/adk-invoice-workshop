@@ -8,6 +8,7 @@ the tool does not do.
 from google.adk.tools.tool_context import ToolContext
 
 from invoice_agent import registry, store, validation
+from invoice_agent.guards import first_document_part
 from invoice_agent.models import InvoiceRecord, LineItem
 
 
@@ -99,20 +100,18 @@ def _archive_uploaded_document(tool_context: ToolContext) -> str | None:
 
     The upload never reaches the tool as an argument — it reaches the model as
     inline bytes on the user's message — so the tool reads it back off the
-    context. Archiving is best effort: a stored record with no original beats a
-    failed save, and the room should not see a stack trace because a bucket
-    was missing.
+    context, using the same part-finder the no-document guard uses. Archiving
+    is best effort: a stored record with no original beats a failed save, and
+    the room should not see a stack trace because a bucket was missing.
     """
-    content = getattr(tool_context, "user_content", None)
-    for part in getattr(content, "parts", None) or []:
-        blob = getattr(part, "inline_data", None)
-        if blob is None or not blob.data:
-            continue
-        try:
-            return store.archive_source(
-                blob.data, blob.mime_type or "application/octet-stream", blob.display_name
-            )
-        except Exception as error:  # noqa: BLE001 - never fail the save
-            print(f"[archive] skipped: {error}")
-            return None
-    return None
+    part = first_document_part(getattr(tool_context, "user_content", None))
+    if part is None:
+        return None
+    blob = part.inline_data
+    try:
+        return store.archive_source(
+            blob.data, blob.mime_type or "application/octet-stream", blob.display_name
+        )
+    except Exception as error:  # noqa: BLE001 - never fail the save
+        print(f"[archive] skipped: {error}")
+        return None
