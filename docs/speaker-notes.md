@@ -149,6 +149,12 @@ in the shell unless the terminal was replaced. See [`DEPLOY.md`](DEPLOY.md).
 
 **Stretch:** *"And the service is private. There is no public URL anywhere in this kit — no `allUsers`, nothing you could accidentally leave open. Which is why the next thing we run is a proxy."*
 
+**Then, over the probe at 0:42** — one line, because the room will expect a browser and will not get one:
+
+> *"We are not opening the chat window on this one, we are calling it. Same API the UI uses, one command. Watch the trace."*
+
+Do not explain why on the clock. The reason is a Cloud Run cross-origin rule ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)), it is interesting to nobody at 0:42, and the answer for whoever asks afterwards is in [`DEPLOY.md`](DEPLOY.md).
+
 ---
 
 ## The diversion — what the room sees when one attendee fails
@@ -192,9 +198,9 @@ words and buys the rest of the sentence its credibility.
 ## Open on the notes
 
 1. **None of this has been said out loud.** The word counts are estimates against measured command times. [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is the test. W2's *wording* is settled; its *timing* is not.
-2. **W4 assumes the proxy step follows immediately.** The run of show flags the proxy path as its largest unproven hole; if it needs its own narration window, this is where it lands.
+2. **W4 assumes the proxy step follows immediately.** Settled: the proxy is proved ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)) and what follows it is the probe command, which now has its own line above rather than its own window.
 3. **The 86x figure** comes from `docs/COST.md` — check it still says that before saying it in a room.
 4. **There are two recovery `cp` commands**, one per fence, and the run of show names only the `tools.py` one. Small correction to make there.
 5. **No narration is written for 0:18**, the first `adk web` launch. The run of show budgets seven minutes there for friction, which is attendee time rather than a dead window, but forty people hitting a telemetry consent dialog at once may want a scripted line too.
 6. **The Terraform directory is `infra/`.** W1 said `cd terraform`, which does not exist. Corrected above and in the run of show.
-7. **The proxy component is installable after all.** [#12](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/12) found `google-cloud-cli-cloud-run-proxy` is a package in the repo Google already ships, reopening the route [#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8) and [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22) wrote off. The pre-flight now checks for it, so W4's stretch line about the proxy stands and note 2 above is smaller than it was — but the path is still unrehearsed, which is [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15).
+7. **The proxy component is installable after all.** [#12](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/12) found `google-cloud-cli-cloud-run-proxy` is a package in the repo Google already ships, reopening the route [#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8) and [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22) wrote off. The pre-flight now checks for it, so W4's stretch line about the proxy stands. #15 then rehearsed the path, and [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52) found its one limit: the developer UI cannot load through the proxy, so 0:42 is a terminal command rather than an upload. Nothing on the deck changes; one narration line was added above.

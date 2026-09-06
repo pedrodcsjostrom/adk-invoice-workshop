@@ -201,13 +201,28 @@ gcloud run services proxy invoice-agent \
   --region europe-west1 --project <SANDBOX_PROJECT> --port 8081
 ```
 
-Then, in the browser, **actually run the demo once**: upload
-`04-halden-rigged-total.pdf` at `localhost:8081`, confirm the double check
-appears, and open `localhost:8081/records` to confirm the flagged row is there.
-That verification is the point of using the sandbox for the opening — you prove
-the cold arrivals' service works at the moment its correctness starts mattering.
+Then **actually run the demo once**, and note that the upload does not happen in
+this browser:
 
-Leave both tabs open. Tab one is the upload, tab two is the records page.
+```bash
+python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf \
+  http://localhost:8081
+```
+
+Confirm the double check appears in the printed trace, then open
+`localhost:8081/records` and confirm the flagged row is there. That
+verification is the point of using the sandbox for the opening — you prove the
+cold arrivals' service works at the moment its correctness starts mattering.
+
+**The developer UI on `localhost:8081` will not load, and that is expected.**
+Cloud Run refuses the module-script requests that carry an `Origin` header, so
+the page comes up styled and blank ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52), evidence in
+[`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md)). Do not
+spend the morning debugging it, and do not put it on the projector.
+
+So the opening 60 seconds is two surfaces: the **upload and tool trace in your
+local `adk web`**, on your own project, and the **records page on the deployed
+sandbox**. Leave two tabs open — local developer UI, and `localhost:8081/records`.
 
 ### 4 · The three terminals
 
@@ -360,10 +375,13 @@ Thirteen blocks. Same five lines every time.
 
   # 0:41  — terminal 3, and it stays running for the rest of the hour
   gcloud run services proxy invoice-agent --region europe-west1 --project <DELIVERY_PROJECT>
+
+  # 0:42  — back in terminal 2. Not a browser: the deployed developer UI does not load.
+  python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
   ```
-- **Room does** — the same, then uploads the rigged invoice once more at 0:42, then opens `localhost:8080/records` at 0:43.
-- **Say** — narration **W3** over the build check, then **W4** over the apply. The double check appears again, now writing to Firestore and archiving the PDF to Cloud Storage.
-- **If it goes wrong** — `FAILURE` on the build is a synchronous rerun of `gcloud builds submit --tag "$IMAGE" .` while the room moves on. Do not read the log from the front. Dropping the `-var` redeploys Google's hello container over the agent; the symptom is a cheerful apply and a page that is not the developer UI.
+- **Room does** — the same, then opens `localhost:8080/records` at 0:43.
+- **Say** — narration **W3** over the build check, then **W4** over the apply, then the one-line probe framing from [`speaker-notes.md`](speaker-notes.md). The double check appears again, in the printed trace, now writing to Firestore and archiving the PDF to Cloud Storage.
+- **If it goes wrong** — `FAILURE` on the build is a synchronous rerun of `gcloud builds submit --tag "$IMAGE" .` while the room moves on. Do not read the log from the front. Dropping the `-var` redeploys Google's hello container over the agent; the symptom is a cheerful apply and a records page that 404s. **Do not let the room browse `localhost:8080` looking for the chat window** — it is blank by design ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)) and it looks exactly like a broken deploy.
 
 ### 0:44 — 0:49 · Teardown, live, together
 
@@ -466,12 +484,13 @@ do not apologise twice.
    of show. [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)
    is what answers it. If ADK reloads an edited `INSTRUCTION`, the block loses
    the Ctrl-C and gets a minute cheaper.
-2. **The proxy at 0:41 is the largest unrehearsed step**, and it is the one
-   this file cannot help with. [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22)
-   reached the service on its `run.app` URL with a token, which is not the
-   route the room takes.
-3. **The sandbox proxy on 8081 is unproven** for the same reason as the
-   delivery proxy, and it is load-bearing from the first sixty seconds rather
-   than from 0:41.
+2. **The proxy at 0:41 is rehearsed** ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)),
+   and [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)
+   established its one limit: the records page and the probe script go through
+   it, the developer UI does not. Both routes above are the proved ones.
+3. **The sandbox proxy on 8081 carries the same two routes**, and it is
+   load-bearing from the first sixty seconds rather than from 0:41 — which is
+   why step 3 asks you to run the probe and open the records page rather than
+   trusting it.
 4. **W1's `cd infra`** contradicts the terminal-2 rule above. Fix it in
    [`speaker-notes.md`](speaker-notes.md) rather than remembering it.

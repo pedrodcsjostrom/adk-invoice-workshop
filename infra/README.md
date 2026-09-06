@@ -11,7 +11,7 @@ there is no bootstrap bucket and nothing to create before Terraform runs.
 | Service account | The identity the agent runs as |
 | Firestore database `invoices` | Invoice records |
 | Cloud Storage bucket | Archived original documents |
-| Cloud Run service | The ADK developer UI and the records page |
+| Cloud Run service | The agent's HTTP API and the records page |
 
 Roles on the service account: `aiplatform.user`, `datastore.user`,
 `storage.objectUser` on the bucket, `artifactregistry.reader` on the repository.
@@ -71,6 +71,12 @@ gcloud run services proxy invoice-agent --region europe-west1 --project "$PROJEC
 
 Open <http://localhost:8080> and you should see the hello page. Leave the proxy
 running; it is how you reach the agent for the rest of the session.
+
+Once your own image is deployed, that same address stops being browsable: the
+service's two usable surfaces are `/records` in a browser and the HTTP API that
+`scripts/probe_deployed.py` drives. The developer UI is a local tool, because
+Cloud Run refuses the cross-origin requests its module scripts make — see
+[`../docs/research/cloud-run-origin-403.md`](../docs/research/cloud-run-origin-403.md).
 
 > **The proxy is a separate gcloud component, and this bites.** `gcloud run
 > services proxy` is not part of the base install. On a Debian or Ubuntu gcloud

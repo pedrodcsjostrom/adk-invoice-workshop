@@ -9,8 +9,10 @@
 # The sandbox is two things, and #37 is the ticket that pulled them apart:
 #
 #   1. One Cloud Run service running the finished agent, open to any signed-in
-#      Google account, reached with `gcloud run services proxy`. This is what a
-#      cold attendee watches during the three cloud blocks they cannot do.
+#      Google account, reached with `gcloud run services proxy` — at /records,
+#      not at the developer UI, which Cloud Run will not serve to a browser
+#      (#52). This is what a cold attendee watches during the three cloud
+#      blocks they cannot do.
 #   2. A plain model backend for an agent running on the attendee's OWN laptop.
 #      This is the important one. Everything from 0:05 to 0:18 is cloud-free,
 #      so a cold arrival points GOOGLE_CLOUD_PROJECT at this project and does
@@ -249,6 +251,9 @@ cat <<HANDOUT
   one thing the local JSON Lines default cannot show them:
 
     gcloud run services proxy $SERVICE --region $REGION --project $PROJECT_ID
+
+  Then open http://localhost:8080/records. Not http://localhost:8080 itself:
+  the developer UI does not load on a deployed service and comes up blank (#52).
 
   The proxy needs one component, a separate package on apt gcloud:
 

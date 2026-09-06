@@ -4,7 +4,7 @@ output "image_repository" {
 }
 
 output "proxy_command" {
-  description = "Run this, then open http://localhost:8080. It is how everyone reaches the agent."
+  description = "Run this, then open http://localhost:8080/records, or drive the agent with scripts/probe_deployed.py. The developer UI does not load through the proxy: docs/research/cloud-run-origin-403.md."
   value       = "gcloud run services proxy ${google_cloud_run_v2_service.agent.name} --region ${var.region} --project ${var.project_id}"
 }
 
