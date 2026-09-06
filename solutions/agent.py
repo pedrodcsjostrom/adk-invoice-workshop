@@ -13,6 +13,7 @@ import os
 
 from google.adk.agents import LlmAgent
 
+from invoice_agent.guards import require_attached_document
 from invoice_agent.models import InvoiceRecord
 from invoice_agent.tools import (
     check_invoice_arithmetic,
@@ -98,4 +99,6 @@ root_agent = LlmAgent(
     instruction=INSTRUCTION,
     tools=[check_invoice_arithmetic, lookup_supplier, save_invoice_record],
     output_schema=InvoiceRecord,
+    # The one rule that is code rather than prose: no document, no turn.
+    before_model_callback=require_attached_document,
 )
