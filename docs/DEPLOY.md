@@ -70,9 +70,8 @@ python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
 
 and open <http://localhost:8080/records>.
 
-## The developer UI does not work on a deployed service
+## The developer UI does not load through the proxy on its own
 
-Not through the proxy, and not by any other route the kit is willing to take.
 Cloud Run's front door answers `403 Forbidden: origin not allowed` to any
 authenticated request carrying a cross-origin `Origin` header. The Angular
 bundles are `type="module"` and module scripts are always fetched in CORS mode,
@@ -80,15 +79,34 @@ so every one of them is refused and the page loads styled and blank. The
 document and the stylesheet are not fetched that way, which is why it looks
 like a broken app rather than a rejected request.
 
-This is not a proxy bug and not fixable by configuration. The evidence, and
-what a fix would actually have to do, are in
+This is not a proxy bug: `gcloud run services proxy` attaches the identity
+token either way. The evidence is in
 [`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md)
 ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)).
 
-**So the deployed service has exactly two usable surfaces**: `/records` in a
-browser, and the HTTP API that `scripts/probe_deployed.py` drives. `adk web`
-stays a local tool. Nothing about the agent changes — the deployed run still
-checks the arithmetic twice and still files the flagged record.
+**So the two surfaces the hour relies on** are `/records` in a browser and the
+HTTP API that `scripts/probe_deployed.py` drives. Neither sends an `Origin`,
+which is exactly why both work. Nothing about the agent changes — the deployed
+run still checks the arithmetic twice and still files the flagged record.
+
+### Getting the developer UI anyway
+
+Deleting that one request header is enough. Chain
+`scripts/strip_origin_proxy.py` in front of the proxy and browse the shim:
+
+```bash
+gcloud run services proxy invoice-agent --region europe-west1 --port 8080
+python scripts/strip_origin_proxy.py          # then open localhost:8090
+```
+
+Proved on a live service: the UI loads, an uploaded PDF runs, and the trace
+pane shows both arithmetic checks. It rewrites bytes rather than parsing
+requests, so server-sent events and file uploads pass through untouched.
+
+**Keep it off the clock.** This is a second hand-rolled process in the hot path
+at 0:41, and the run of show deliberately does not depend on it. Use it when
+you want to show the deployed agent's trace in the UI, or to debug a deployed
+service on your own time.
 
 The first apply runs on Google's hello container because the registry that
 holds your image is created by that same apply. See

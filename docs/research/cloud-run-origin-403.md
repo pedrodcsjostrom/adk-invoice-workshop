@@ -1,4 +1,4 @@
-# The developer UI cannot load through the proxy, and why
+# The developer UI does not load through the proxy, and the one-line reason
 
 Ticket [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52).
 Revises the proxy conclusion in [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15).
@@ -70,11 +70,35 @@ GET /c  Origin + Sec-Fetch-Mode: cors, Sec-Fetch-Dest: script
 ```
 
 The token is attached every time. The proxy simply passes `Origin` through, and
-Cloud Run rejects it. So a hypothetical fix is not a token-injecting proxy: it
-is a proxy that **deletes one request header**. That is a much smaller thing
-than #52 assumed, and it is still a component in the hot path at 0:41 that
-would have to relay the developer UI's server-sent events correctly. It is
-written down here rather than built.
+Cloud Run rejects it. So the fix is not a token-injecting proxy: it is a proxy
+that **deletes one request header**. That is a much smaller thing than #52
+assumed.
+
+## Deleting the header, built and proved
+
+`scripts/strip_origin_proxy.py` is that proxy, in forty lines. It listens on
+8090, forwards to the `cloud-run-proxy` on 8080, and strips `Origin` from the
+client-to-server byte stream. It rewrites bytes rather than parsing requests,
+which is how it relays server-sent events without understanding them.
+
+Against the same live service, every route that was 403 with an `Origin`
+returns 200 through the shim, including `/dev-ui/main-*.js`. In Chrome the
+developer UI loads fully with `invoice_agent` already selected. The rigged
+Halden PDF was uploaded through the chat box and produced the whole trace in
+the events pane:
+
+```
+check_invoice_arithmetic -> check_invoice_arithmetic
+  -> lookup_supplier -> save_invoice_record
+```
+
+A separate `/run_sse` call carrying an `Origin` streamed nine events in 18s, so
+streaming survives the shim. The record reached Firestore either way.
+
+**It is still a second process in the hot path at 0:41**, which is why the run
+of show does not use it. It is an escape hatch and a debugging tool, not the
+demo. The earlier claim here that the UI could not be reached "by any route the
+kit is willing to take" was too strong.
 
 This is environment-independent: not a cold start, not project IAM, not the
 attendee's credentials.

@@ -488,6 +488,8 @@ do not apologise twice.
    and [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)
    established its one limit: the records page and the probe script go through
    it, the developer UI does not. Both routes above are the proved ones.
+   `scripts/strip_origin_proxy.py` does get the UI up, and it works, but it is
+   a second process to babysit and nothing on the clock needs it.
 3. **The sandbox proxy on 8081 carries the same two routes**, and it is
    load-bearing from the first sixty seconds rather than from 0:41 — which is
    why step 3 asks you to run the probe and open the records page rather than
