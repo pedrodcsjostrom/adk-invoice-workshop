@@ -2,6 +2,8 @@
 
 **Status: rehearsed end to end, from a clean clone to a shut-down project, including through the proxy.** Ticket [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11). Every number below is now measured rather than budgeted, and what the run found is in [`research/rehearsal-run.md`](research/rehearsal-run.md) ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)) — including a defect in the before-and-after this whole outline is built on.
 
+**One thing the rehearsal got wrong, corrected at 0:00 and 0:42.** The deployed developer UI cannot be opened in a browser through the proxy: Cloud Run rejects the module-script requests that carry an `Origin` header, and the page loads styled and blank. #15 read three 200s from curl and never opened a browser. See [`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md) ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)).
+
 What goes on the projector and what is said over each running command live in
 [`deck.md`](deck.md) and [`speaker-notes.md`](speaker-notes.md) ([#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)). Five slides, only one of
 which appears mid-hour.
@@ -42,7 +44,9 @@ Hands-on time: roughly 35 of the 60 minutes.
 
 One slide. The promise stated plainly: *by the end of the hour you will have deployed an agent that reads a real PDF invoice, catches one that does not add up, and files it anyway with a flag.*
 
-Then 60 seconds of the finished thing on Peter's already-deployed service: upload, tool trace, records page with one red flagged row. They see the destination before they build it.
+Then 60 seconds of the finished thing: an upload and its tool trace in Peter's **local** developer UI, then the records page on his already-deployed service with one red flagged row. They see the destination before they build it, and they see both halves of it.
+
+The demo is split across two machines-worth of surface for a reason. The developer UI on a deployed service does not load through the proxy at all ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)), so the upload has to be local. The records page is deployed, which is the half worth showing deployed.
 
 Say out loud, once, the thing that makes the hour make sense: **the failure is designed, and it is the point.** Otherwise the best minute of the hour reads as a bug.
 
@@ -175,9 +179,17 @@ Questions, catch-up, breath. This block exists to be spent.
 
 - **0:39** Check the build landed, with `gcloud builds describe <id>` or the tail of `gcloud builds list`. A failure surfaces here and the answer is a synchronous rebuild while the room moves on without them.
 - **0:40** Second `terraform apply`, with `-var "image=$IMAGE"` or it puts the hello container back. Forty-one seconds, one revision replaced, container start included (#15).
-- **0:41** `gcloud run services proxy` in a spare terminal, browse localhost. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/18)). **Proved in #15**: the proxy answers, `/` redirects to the developer UI and `/records` serves on the same port. This was the last unproven step in the kit.
-- **0:42** Upload the rigged invoice once more. Eighteen seconds measured through the proxy, and **the same double check appears**, running as the stack's service account rather than as a human. The record lands in the named Firestore database, the records page renders it flagged as failing, and the original PDF is in the bucket (#15).
-- **0:43** Open the records page on the same service. One deployable, and now they have seen why that claim is true rather than aspirational.
+- **0:41** `gcloud run services proxy` in a spare terminal. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/18)).
+- **0:42** Run the rigged invoice against the deployed agent **from the terminal**, not from a browser:
+
+  ```bash
+  python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
+  ```
+
+  Seventeen seconds measured through the proxy, and it prints the tool trace: **the same double check appears**, running as the stack's service account rather than as a human. The record lands in the named Firestore database and the original PDF lands in the bucket ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)).
+- **0:43** Open `localhost:8080/records` in a browser. The flagged row is there, rendered by the service they just deployed, reading Firestore under its own identity. One deployable, and now they have seen why that claim is true rather than aspirational.
+
+**Do not open the developer UI on the deployed service.** It cannot load through the proxy and it never will: Cloud Run's front door refuses any authenticated request carrying a cross-origin `Origin` header, the Angular bundles are module scripts, and module scripts always send one. The page comes up styled and completely blank. That is [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52), with the evidence in [`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md). The developer UI is a local tool in this kit; the deployed service is reached by the probe script and the records page.
 
 Talk over the waits: why `min_instance_count = 0` is the 86x lever on idle cost, and why the service runs as its own service account rather than the Compute Engine default.
 
@@ -215,7 +227,7 @@ Repo URL on screen and recitable. Feedback ask.
 The room will run late. Cut in this order and say nothing about it:
 
 1. **Slack at 0:36** (3 min). It exists to be spent.
-2. **The cloud run of the rigged invoice at 0:42** (2 min). Prove the service answers and move on; they already did the real thing locally.
+2. **The cloud run of the rigged invoice at 0:42** (2 min). Open the records page, prove the service answers, and move on; they already did the real thing locally. **Cutting this cuts 0:43 with it** — nothing has written to their Firestore, so their own records page reads "0 filed". Show Peter's instead, exactly as item 4 says.
 3. **The wrap-up at 0:49** compresses from 8 minutes to 3. The take-home is in the README.
 4. **Their own records page at 0:43** (1 min). Show Peter's instead.
 5. **The clean-invoice run at 0:18** (2 min). Go straight to the rigged one. Costs the contrast, which is a real loss.
@@ -224,8 +236,8 @@ The room will run late. Cut in this order and say nothing about it:
 
 ## Still open
 
-1. **Two gcloud installations on `PATH`.** Resolved for the proxy itself — #15 opened the deployed agent through `gcloud run services proxy` and all three routes served — but the way it got there introduces a trap. An attendee without a password installs the tarball SDK, which takes `cloud-run-proxy` in nine seconds without root, and then has two gcloud installations. Keep calling the apt one and the component is still missing, for no visible reason. gcloud warns about this; the pre-flight should too. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
-2. **Three terminals** by 0:41: the developer UI, gcloud and Terraform, and the proxy. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them.
+1. **Two gcloud installations on `PATH`.** The proxy itself is settled — #15 reached the deployed service through `gcloud run services proxy`, and #52 then found the one route it cannot carry, the developer UI — but the way #15 got there introduces a trap. An attendee without a password installs the tarball SDK, which takes `cloud-run-proxy` in nine seconds without root, and then has two gcloud installations. Keep calling the apt one and the component is still missing, for no visible reason. gcloud warns about this; the pre-flight should too. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
+2. **Three terminals** by 0:41: the developer UI, gcloud and Terraform, and the proxy. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them. The probe at 0:42 runs in terminal 2, not a fourth.
 3. **`terraform apply -auto-approve`** assumes the room should not be typing `yes` while listening to an explanation. Fine for a workshop, and worth one sentence about why it is not what you would do at work.
 4. **Whether `adk web` needs a restart** to pick up an edited `INSTRUCTION`. The payoff segment assumes it does. If ADK reloads it, the segment gets smoother and a minute cheaper.
 5. **The measured numbers came from one machine on good wifi**, in `europe-west1`. Conference wifi is the variable none of them account for, and the build's 52 seconds includes a source upload.

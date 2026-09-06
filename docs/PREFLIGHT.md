@@ -40,7 +40,7 @@ gcloud components install cloud-run-proxy
 ```
 
 The agent you deploy is **private** — there is no public URL, by design. The
-only way you open it is through this proxy. If `gcloud` came from a package
+only way you reach it is through this proxy. If `gcloud` came from a package
 manager it will refuse the command above, because it does not own its own
 components — but it refuses helpfully, printing the exact command to run
 instead. On Debian or Ubuntu that command is:

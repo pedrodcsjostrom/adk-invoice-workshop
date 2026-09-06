@@ -111,6 +111,15 @@ seconds with no password at all**. Through the resulting proxy:
 So the deployed agent opens the way every attendee is told to open it, and
 "one deployable" holds through the proxy rather than only on the `run.app` URL.
 
+> **Corrected by [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52).**
+> That table is three status codes from curl, and the `/dev-ui/` row does not
+> mean what it says. A browser loading the same URL gets a styled blank page:
+> the Angular bundles are module scripts, module scripts carry an `Origin`
+> header, and Cloud Run's front door refuses any authenticated request that
+> does. The proxy is proved for `/records` and for the agent's HTTP API, and
+> disproved for the developer UI. See
+> [`cloud-run-origin-403.md`](cloud-run-origin-403.md).
+
 **One hazard the tarball route introduces**, and the pre-flight should say so:
 gcloud warns that there are now two installations on `PATH`. An attendee who
 installs the tarball but keeps calling the apt `gcloud` gets a proxy component

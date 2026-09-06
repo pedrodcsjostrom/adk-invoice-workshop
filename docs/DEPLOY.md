@@ -62,6 +62,34 @@ gcloud run services proxy invoice-agent \
   --region europe-west1 --project "$PROJECT_ID"  # 4. reach it
 ```
 
+Then, in another terminal, drive it and look at what it filed:
+
+```bash
+python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
+```
+
+and open <http://localhost:8080/records>.
+
+## The developer UI does not work on a deployed service
+
+Not through the proxy, and not by any other route the kit is willing to take.
+Cloud Run's front door answers `403 Forbidden: origin not allowed` to any
+authenticated request carrying a cross-origin `Origin` header. The Angular
+bundles are `type="module"` and module scripts are always fetched in CORS mode,
+so every one of them is refused and the page loads styled and blank. The
+document and the stylesheet are not fetched that way, which is why it looks
+like a broken app rather than a rejected request.
+
+This is not a proxy bug and not fixable by configuration. The evidence, and
+what a fix would actually have to do, are in
+[`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md)
+([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)).
+
+**So the deployed service has exactly two usable surfaces**: `/records` in a
+browser, and the HTTP API that `scripts/probe_deployed.py` drives. `adk web`
+stays a local tool. Nothing about the agent changes — the deployed run still
+checks the arithmetic twice and still files the flagged record.
+
 The first apply runs on Google's hello container because the registry that
 holds your image is created by that same apply. See
 [infra/README.md](../infra/README.md).
@@ -113,13 +141,13 @@ backend is issue #9. The stack is ready for it: the service account already
 holds `datastore.user` and `storage.objectUser`, and `FIRESTORE_DATABASE` and
 `INVOICE_BUCKET` are already in the container's environment.
 
-**The proxy component really is missing.** On the apt-installed gcloud used
-here, `gcloud run services proxy` is not present and cannot be installed
-without sudo, exactly as issue #8 predicted. This run reached the service
-directly at its `run.app` URL with an identity token instead. That is a
-workaround for a laptop, not the attendee path — it proves the service, not
-the route the room takes — which makes the pre-flight check on issue #12 the
-only thing standing between an attendee and a service they cannot open.
+**The proxy component was missing on that machine.** On the apt-installed
+gcloud used for the #22 run, `gcloud run services proxy` was not present, so it
+reached the service directly at its `run.app` URL with an identity token
+instead. #12 later found `google-cloud-cli-cloud-run-proxy` is a package in the
+repo Google already ships, and #15 opened the deployed service through the
+resulting proxy. The pre-flight check on issue #12 is still the thing standing
+between an attendee and a service they cannot reach.
 
 **The service is private and behaves like it.** Unauthenticated requests to
 the `run.app` URL get 403. With an identity token the same request gets 200.
@@ -129,11 +157,16 @@ as the stack's service account rather than as a human, the rigged invoice
 produced two `check_invoice_arithmetic` calls before the lookup and the save.
 The demo works where it has to work.
 
-## Proving it without a browser
+## Driving the deployed agent
+
+This is the way you run an invoice against the deployed service, not a fallback
+for when a browser is unavailable — the browser route does not exist, for the
+reason above.
 
 `scripts/probe_deployed.py` drives the deployed service over the same HTTP API
 the developer UI uses: it creates a session, uploads one invoice as inline
-bytes, and prints the tool calls, the elapsed time and the finished record.
+bytes, and prints the tool calls, the elapsed time and the finished record. It
+sends no `Origin`, which is exactly why it works where the UI does not.
 
 ```bash
 python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
