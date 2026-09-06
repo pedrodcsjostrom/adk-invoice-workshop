@@ -9,10 +9,11 @@
 # The sandbox is two things, and #37 is the ticket that pulled them apart:
 #
 #   1. One Cloud Run service running the finished agent, open to any signed-in
-#      Google account, reached with `gcloud run services proxy` — at /records,
-#      not at the developer UI, which Cloud Run will not serve to a browser
-#      (#52). This is what a cold attendee watches during the three cloud
-#      blocks they cannot do.
+#      Google account, reached with `python scripts/origin_shim.py` — the
+#      upload page at / and the records page at /records, both ours. The ADK
+#      developer UI is not deployed (ADR-0001); the shim is what makes an
+#      upload from a browser work at all (#52, #61). This is what a cold
+#      attendee watches during the three cloud blocks they cannot do.
 #   2. A plain model backend for an agent running on the attendee's OWN laptop.
 #      This is the important one. Everything from 0:05 to 0:18 is cloud-free,
 #      so a cold arrival points GOOGLE_CLOUD_PROJECT at this project and does
@@ -247,15 +248,19 @@ cat <<HANDOUT
   Then clone and do exactly what the room does, from 0:05 to 0:39.
 
   During the three cloud blocks they have nothing to apply, so that is when
-  they watch the deployed service — including the records page, which is the
-  one thing the local JSON Lines default cannot show them:
+  they watch the deployed service — the upload page, and the records page,
+  which is the one thing the local JSON Lines default cannot show them. One
+  command opens both:
 
-    gcloud run services proxy $SERVICE --region $REGION --project $PROJECT_ID
+    python scripts/origin_shim.py --project $PROJECT_ID --service $SERVICE \\
+      --region $REGION
 
-  Then open http://localhost:8080/records. Not http://localhost:8080 itself:
-  the developer UI does not load on a deployed service and comes up blank (#52).
+  Open the URL it prints. That is the upload page: pick an invoice, send it,
+  and follow the link to the records page. Ctrl-C stops the shim and the proxy
+  it started. It deletes the one header Cloud Run refuses from a browser, which
+  is why the upload works through it and not through the bare proxy (#52, #61).
 
-  The proxy needs one component, a separate package on apt gcloud:
+  The shim needs one gcloud component, a separate package on apt gcloud:
 
     sudo apt-get install google-cloud-cli-cloud-run-proxy
 

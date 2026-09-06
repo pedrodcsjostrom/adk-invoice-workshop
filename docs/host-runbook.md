@@ -33,8 +33,15 @@ REGION             europe-west1
 Cold arrivals expected   ____   (silent + NOT-READY-needs-admin, from the reports)
 Handouts printed         ____
 
-Ports    adk web 8000  ·  delivery proxy 8080  ·  sandbox proxy 8081
+Way in   python scripts/origin_shim.py        ·  adk web is on 8000
 ```
+
+**One line, where there used to be three ports to keep straight.** The Origin
+shim runs the proxy for you, deletes the header Cloud Run refuses and prints
+the one URL to open ([#61](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/61),
+ADR-0004). It defaults to `invoice-agent` in `europe-west1` on 8080, which is
+the delivery project all hour; the sandbox needs `--project` and `--port 8081`
+and that command is written out where you run it, in step 3 below.
 
 ---
 
@@ -191,38 +198,35 @@ Slide 2 carries the sandbox project id and the access group address, by design,
 and it is the slide a cold arrival stares at. Fill both in, re-export, and open
 the exported file to confirm the underscores are gone.
 
-### 3 · The sandbox proxy, and the opening demo
+### 3 · The way in to the sandbox, and the opening demo
 
 This is the service you show in the first 60 seconds. It is not a fourth
 terminal — start it minimized, on its own port, and never type in it again.
 
 ```bash
-gcloud run services proxy invoice-agent \
-  --region europe-west1 --project <SANDBOX_PROJECT> --port 8081
+python scripts/origin_shim.py --project <SANDBOX_PROJECT> --port 8081
 ```
 
-Then **actually run the demo once**, and note that the upload does not happen in
-this browser:
+Then **actually run the demo once**, in the browser, exactly where the room
+will see it. Open `localhost:8081`, pick `04-halden-rigged-total.pdf` on the
+upload page and send it.
 
-```bash
-python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf \
-  http://localhost:8081
-```
+Confirm the row lands red, with the trace summary reading **checked twice**,
+then follow the link to the records page and confirm the flagged row is there.
+That verification is the point of using the sandbox for the opening — you prove
+the cold arrivals' service works at the moment its correctness starts mattering,
+and it leaves a row in the records page so the opening has something to show.
 
-Confirm the double check appears in the printed trace, then open
-`localhost:8081/records` and confirm the flagged row is there. That
-verification is the point of using the sandbox for the opening — you prove the
-cold arrivals' service works at the moment its correctness starts mattering.
-
-**The developer UI on `localhost:8081` will not load, and that is expected.**
-Cloud Run refuses the module-script requests that carry an `Origin` header, so
-the page comes up styled and blank ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52), evidence in
-[`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md)). Do not
-spend the morning debugging it, and do not put it on the projector.
+**Send one clean invoice as well** if you want the contrast on screen at 0:00.
+Do not send the whole folder: the page takes twenty documents in one batch and
+each one is its own model call on your billing account.
 
 So the opening 60 seconds is two surfaces: the **upload and tool trace in your
-local `adk web`**, on your own project, and the **records page on the deployed
-sandbox**. Leave two tabs open — local developer UI, and `localhost:8081/records`.
+local `adk web`**, on your own project, and the **deployed sandbox**. Leave
+three tabs open — local developer UI, `localhost:8081`, and
+`localhost:8081/records`. The upload page tab is there so nobody meets it for
+the first time on their own screen at 0:42; nothing is uploaded through it live
+in the opening.
 
 ### 4 · The three terminals
 
@@ -233,7 +237,7 @@ creating a window is what goes wrong while you are talking.
 |---|---|---|---|
 | 1 | The agent, `adk web`, restarted once at 0:31 | `~/workshop-live` | 0:18 |
 | 2 | gcloud and Terraform. **Holds `IMAGE`. Do not close it.** | `~/workshop-live` | 0:14 |
-| 3 | The delivery proxy | `~/workshop-live` | 0:41 |
+| 3 | The Origin shim, on the delivery project | `~/workshop-live` | 0:41 |
 
 Terminal 2 stays at the repo root all hour and uses `terraform -chdir=infra`.
 It does not `cd infra`, because `gcloud builds submit` at 0:30 uploads the
@@ -265,8 +269,8 @@ Thirteen blocks. Same five lines every time.
 
 ### 0:00 — 0:05 · Open, the promise, and cold triage
 
-- **On screen** — slide 1, then browser tab one, then slide 2.
-- **You type** — nothing. The demo is already loaded on `localhost:8081`.
+- **On screen** — slide 1, then the local developer UI, then the two sandbox tabs, then slide 2.
+- **You type** — nothing. The local upload runs in the developer UI; the sandbox tabs are already loaded on `localhost:8081`, upload page then records page, and nothing is uploaded through them live.
 - **Room does** — watches, then hands up for anyone whose pre-flight did not pass.
 - **Say** — the promise, then *the failure is designed and it is the point*. Then the three sandbox instructions from slide 2, in order: join the group, two `.env` lines, login plus quota project.
 - **If it goes wrong** — a join that does not take gets a per-email grant on the spot: `gcloud projects add-iam-policy-binding <SANDBOX_PROJECT> --member=user:<email> --role=roles/aiplatform.user`, and the same again with `roles/serviceusage.serviceUsageConsumer`. Effective the instant it returns.
@@ -292,7 +296,7 @@ Thirteen blocks. Same five lines every time.
 
 ### 0:14 — 0:18 · Cloud step one, and the diversion
 
-- **On screen** — terminal 2, then slide 4, then the editor, then terminal 2.
+- **On screen** — terminal 2, then slide 3 — the loop — then the editor, then terminal 2.
 - **You type** — command first, talking after. Do not narrate the typing.
   ```
   terraform -chdir=infra apply -auto-approve
@@ -364,7 +368,7 @@ Thirteen blocks. Same five lines every time.
 
 ### 0:39 — 0:44 · Collect the deploy
 
-- **On screen** — terminal 2, then terminal 3, then the browser on `localhost:8080`.
+- **On screen** — terminal 2, then terminal 3, then the browser on the URL the shim prints (`localhost:8080`).
 - **You type**
   ```
   # 0:39
@@ -374,14 +378,14 @@ Thirteen blocks. Same five lines every time.
   terraform -chdir=infra apply -auto-approve -var "image=$IMAGE"
 
   # 0:41  — terminal 3, and it stays running for the rest of the hour
-  gcloud run services proxy invoice-agent --region europe-west1 --project <DELIVERY_PROJECT>
+  python scripts/origin_shim.py --project <DELIVERY_PROJECT>
 
-  # 0:42  — back in terminal 2. Not a browser: the deployed developer UI does not load.
-  python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
+  # 0:42  — the browser, on the URL the shim printed. No typing.
+  #         Pick 01-northwind-clean.pdf and 04-halden-rigged-total.pdf, press Analyse.
   ```
-- **Room does** — the same, then opens `localhost:8080/records` at 0:43.
-- **Say** — narration **W3** over the build check, then **W4** over the apply, then the one-line probe framing from [`speaker-notes.md`](speaker-notes.md). The double check appears again, in the printed trace, now writing to Firestore and archiving the PDF to Cloud Storage.
-- **If it goes wrong** — `FAILURE` on the build is a synchronous rerun of `gcloud builds submit --tag "$IMAGE" .` while the room moves on. Do not read the log from the front. Dropping the `-var` redeploys Google's hello container over the agent; the symptom is a cheerful apply and a records page that 404s. **Do not let the room browse `localhost:8080` looking for the chat window** — it is blank by design ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)) and it looks exactly like a broken deploy.
+- **Room does** — the same, then follows the link to the records page at 0:43.
+- **Say** — narration **W3** over the build check, then **W4** over the apply, the shim and the upload, all of it in [`speaker-notes.md`](speaker-notes.md). Two rows land one at a time, about forty seconds for the pair; the Halden row is red and its last column reads **checked twice**. The double check appears again, on their own service, now writing to Firestore and archiving the PDF to Cloud Storage.
+- **If it goes wrong** — `FAILURE` on the build is a synchronous rerun of `gcloud builds submit --tag "$IMAGE" .` while the room moves on. Do not read the log from the front. Dropping the `-var` redeploys Google's hello container over the agent; the symptom is a cheerful apply and a hello page where the upload page should be. A row that comes back red **with a reason in it** is a failed document, not a failed deploy, and the batch carries on — read the reason out and move to the next row. **Nobody has to find a URL:** the shim prints one and the upload page links to the records page, so there is no address to dictate to a room.
 
 ### 0:44 — 0:49 · Teardown, live, together
 
@@ -396,7 +400,7 @@ Thirteen blocks. Same five lines every time.
 
 ### 0:49 — 0:57 · What that was, and where it goes
 
-- **On screen** — slide 5.
+- **On screen** — slide 4, the takeaways.
 - **You type** — nothing.
 - **Room does** — listens.
 - **Say** — three points: a tool's description is its interface, English is the type signature; the interesting behaviour is in the loop, not the model; an agent you cannot watch is an agent you cannot trust, the trace was the product. Then the take-home.
@@ -413,7 +417,7 @@ Thirteen blocks. Same five lines every time.
 ### Cut list
 
 Late is the normal case. Cut in this order and say nothing about it: slack at
-0:36, the cloud run of the rigged invoice at 0:42, the wrap-up compressed to
+0:36, the upload against their own service at 0:42, the wrap-up compressed to
 three minutes, their own records page at 0:43, the clean-invoice run at 0:18.
 
 **Never cut** fill-in two, the payoff, or the teardown. If the collection will
@@ -436,8 +440,9 @@ membership and the UI is the API. Open the group's member page, select all,
 remove members, and keep the group and its join policy. If you skip this, this
 workshop's attendees are pre-granted on the next sandbox.
 
-Also kill the sandbox proxy, still running minimized on 8081, and confirm the
-delivery project is gone.
+Also Ctrl-C the sandbox shim, still running minimized on 8081. That takes down
+the proxy it started as well, which is the point of it being one command, and
+then confirm the delivery project is gone.
 
 Then keep the pre-flight reports. The distribution of failures is the best data
 you will get for running this again, and the version line ties a failure to an
@@ -484,15 +489,19 @@ do not apologise twice.
    of show. [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)
    is what answers it. If ADK reloads an edited `INSTRUCTION`, the block loses
    the Ctrl-C and gets a minute cheaper.
-2. **The proxy at 0:41 is rehearsed** ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)),
-   and [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)
-   established its one limit: the records page and the probe script go through
-   it, the developer UI does not. Both routes above are the proved ones.
-   `scripts/strip_origin_proxy.py` does get the UI up, and it works, but it is
-   a second process to babysit and nothing on the clock needs it.
-3. **The sandbox proxy on 8081 carries the same two routes**, and it is
+2. **The shim at 0:41 has not been rehearsed in a room.** The proxy underneath
+   it is proved ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)),
+   and the header deletion is proved against a live service
+   ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52),
+   [#61](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/61)),
+   but one command that starts a child process, prints a URL and dies cleanly
+   on Ctrl-C is exactly the kind of thing that behaves differently on forty
+   laptops. It is the first thing to watch in the next rehearsal, and the
+   failure it must survive is a missing `cloud-run-proxy` component, which it
+   answers with a plain sentence rather than a stack trace.
+3. **The sandbox shim on 8081 carries the same two pages**, and it is
    load-bearing from the first sixty seconds rather than from 0:41 — which is
-   why step 3 asks you to run the probe and open the records page rather than
-   trusting it.
+   why step 3 asks you to upload the rigged invoice through it and open the
+   records page rather than trusting it.
 4. **W1's `cd infra`** contradicts the terminal-2 rule above. Fix it in
    [`speaker-notes.md`](speaker-notes.md) rather than remembering it.

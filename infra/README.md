@@ -72,11 +72,16 @@ gcloud run services proxy invoice-agent --region europe-west1 --project "$PROJEC
 Open <http://localhost:8080> and you should see the hello page. Leave the proxy
 running; it is how you reach the agent for the rest of the session.
 
-Once your own image is deployed, that same address stops being browsable: the
-service's two usable surfaces are `/records` in a browser and the HTTP API that
-`scripts/probe_deployed.py` drives. The developer UI is a local tool, because
-Cloud Run refuses the cross-origin requests its module scripts make — see
-[`../docs/research/cloud-run-origin-403.md`](../docs/research/cloud-run-origin-403.md).
+Once your own image is deployed, that same address serves two pages of ours:
+the upload page at `/` and the records page at `/records`. Reach them with
+`python scripts/origin_shim.py` rather than the bare proxy above — Cloud Run's
+front door refuses any request carrying an `Origin` header, which a browser
+attaches to every upload, and the shim runs the proxy and deletes that one
+header. See
+[`../docs/research/cloud-run-origin-403.md`](../docs/research/cloud-run-origin-403.md)
+and [`../docs/adr/0004-origin-shim-is-the-way-in.md`](../docs/adr/0004-origin-shim-is-the-way-in.md).
+The ADK developer UI is not deployed at all; it is the local tool, under
+`adk web`.
 
 > **The proxy is a separate gcloud component, and this bites.** `gcloud run
 > services proxy` is not part of the base install. On a Debian or Ubuntu gcloud

@@ -132,3 +132,46 @@ The proxy stays. It is how `/records` is reached, there is still no public URL
 in the kit, and the `cloud-run-proxy` pre-flight check is as load-bearing as it
 was. Allowing unauthenticated invocations remains rejected for the reasons at
 the top of `infra/service.tf`.
+
+---
+
+## Closing note, 2026-09-06: what was built
+
+Everything above is what was measured in early September, and it stands. What
+it led to is [#55](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/55),
+which landed as six tickets, and the short version is that the problem this
+document diagnoses no longer has to be worked around at all.
+
+- **The header rule was re-measured on the upload path** and it is worse than
+  the table above shows, because the table is all GETs. A POST with no `Origin`
+  reaches the container; the same POST with `Origin: http://localhost:8080` is
+  refused. A browser attaches `Origin` to every request that is not a plain page
+  load, including a same-origin form post, so this was never only a developer UI
+  problem — any page we served from Cloud Run would render and then fail on its
+  first upload.
+- **The developer UI is no longer deployed.** The deployed service is a plain
+  FastAPI application of ours serving an upload page at `/` and the records page
+  at `/records` (ADR-0001, ADR-0002). So the symptom this document opens with —
+  a styled blank page at `/dev-ui/` — is now a fact about something the container
+  does not serve. The developer UI is the local tool, under `adk web`, and the
+  hour's trace is still read there.
+- **The Origin shim became the way in, not the escape hatch.** It is
+  `scripts/origin_shim.py`, renamed from `strip_origin_proxy.py`, and it is one
+  command rather than two processes on two ports: it starts
+  `gcloud run services proxy` as a child on a port of its own, listens on 8080,
+  deletes `Origin`, prints one URL, and takes the child down on Ctrl-C. The
+  40-line byte-rewriting core is the same code that was proved above. ADR-0004
+  records the decision; #61 is the ticket. The 8090 in the section above is
+  history — there is no second port any more.
+- **`scripts/probe_deployed.py` is no longer the deployed route, and no longer
+  speaks ADK's REST API.** It was repointed at `POST /analyze`, the same
+  multipart request the upload page sends, because the deployed application
+  does not mount ADK's HTTP surface any more. "What replaces the UI at 0:42"
+  above is superseded: 0:42 is a browser upload against the attendee's own
+  service, and the probe is a check of the deploy rather than a substitute for
+  the room seeing it.
+
+**So: do not re-diagnose this.** The 403 is real, it is a Cloud Run front-door
+cross-origin rule, and the answer is in the repo. What is worth re-reading here
+is the elimination — the proxy attaches the token either way, so the fix was
+never a token-injecting proxy — because that is the part that cost the time.

@@ -37,11 +37,15 @@ requires that the CLI does not do on its own:
   store that vanishes at the next scale-to-zero. What matters is written to
   Firestore by the persistence tool instead.
 
-`server.py` calls the same app factory the CLI calls, `get_fast_api_app`, so
-the developer UI is identical to the local one. **This is what makes the
-records page free:** it is a route added to that same FastAPI app (issue #9),
-served by the same process on the same port 8080. One container, one service,
-one URL.
+`server.py` builds a plain FastAPI application of our own and mounts two pages
+on it: the **upload page** at `/`, which is a file picker and a results table,
+and the **records page** at `/records` (issues #9 and #60). It used to call the
+CLI's app factory and serve the developer UI along with it; it no longer does,
+because the workshop uses one button of that UI and a browser could not open it
+on a private service anyway (ADR-0001). ADK's REST API is not mounted either,
+so the deployed agent is driven through `POST /analyze` and nothing else
+(ADR-0002). The developer UI stays local, under `adk web`. One container, one
+service, one URL, on port 8080.
 
 ## The sequence
 
@@ -58,55 +62,51 @@ gcloud builds submit --tag "$IMAGE" ..           # 2. build and push
 
 terraform apply -var "image=$IMAGE"              # 3. swap the image in
 
-gcloud run services proxy invoice-agent \
-  --region europe-west1 --project "$PROJECT_ID"  # 4. reach it
+python scripts/origin_shim.py \
+  --project "$PROJECT_ID"                        # 4. reach it
 ```
 
-Then, in another terminal, drive it and look at what it filed:
+The fourth command prints one URL. Open it: that is the upload page on your own
+service. Pick an invoice, press the button, and follow the link to
+`/records` to see what the agent filed.
+
+## The Origin shim is the way in
+
+The service is private and always will be — domain restricted sharing blocks an
+`allUsers` invoker binding for corporate attendees, so `gcloud run services
+proxy` is in the path for everyone. That proxy is necessary and not sufficient.
+Cloud Run's front door answers `403 Forbidden: origin not allowed` to any
+authenticated request carrying a cross-origin `Origin` header, and a browser
+attaches that header to every request that is not a plain page load — including
+a same-origin form post, which is what an upload is. So the proxy alone gets
+you a page that renders and then fails on its first upload.
+
+The shim closes exactly that gap, and nothing else:
 
 ```bash
-python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
+python scripts/origin_shim.py
+python scripts/origin_shim.py --service invoice-agent --region europe-west1 \
+  --project my-project --port 8080          # the defaults, spelled out
 ```
 
-and open <http://localhost:8080/records>.
+It starts the proxy as a child on a port of its own, listens on the port you
+browse, deletes `Origin` from everything on the way through, prints the URL,
+and takes the proxy down with it on Ctrl-C. It rewrites bytes rather than
+parsing requests, so uploads and server-sent events pass through untouched, and
+it checks for the proxy binary, the `cloud-run-proxy` component and the service
+before it starts, so a missing piece is a sentence rather than a stack trace.
 
-## The developer UI does not load through the proxy on its own
-
-Cloud Run's front door answers `403 Forbidden: origin not allowed` to any
-authenticated request carrying a cross-origin `Origin` header. The Angular
-bundles are `type="module"` and module scripts are always fetched in CORS mode,
-so every one of them is refused and the page loads styled and blank. The
-document and the stylesheet are not fetched that way, which is why it looks
-like a broken app rather than a rejected request.
-
-This is not a proxy bug: `gcloud run services proxy` attaches the identity
-token either way. The evidence is in
+It used to be two processes and two ports, kept off the clock as a debugging
+tool. It is one command now and it is the documented way in
+([#61](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/61),
+ADR-0004). The evidence for the header rule, including the diagnoses that were
+rejected on the way, is in
 [`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md)
 ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)).
 
-**So the two surfaces the hour relies on** are `/records` in a browser and the
-HTTP API that `scripts/probe_deployed.py` drives. Neither sends an `Origin`,
-which is exactly why both work. Nothing about the agent changes — the deployed
-run still checks the arithmetic twice and still files the flagged record.
-
-### Getting the developer UI anyway
-
-Deleting that one request header is enough. Chain
-`scripts/strip_origin_proxy.py` in front of the proxy and browse the shim:
-
-```bash
-gcloud run services proxy invoice-agent --region europe-west1 --port 8080
-python scripts/strip_origin_proxy.py          # then open localhost:8090
-```
-
-Proved on a live service: the UI loads, an uploaded PDF runs, and the trace
-pane shows both arithmetic checks. It rewrites bytes rather than parsing
-requests, so server-sent events and file uploads pass through untouched.
-
-**Keep it off the clock.** This is a second hand-rolled process in the hot path
-at 0:41, and the run of show deliberately does not depend on it. Use it when
-you want to show the deployed agent's trace in the UI, or to debug a deployed
-service on your own time.
+**The developer UI is not on the deployed service to open.** It is a local tool
+under `adk web`, which is where the hour's trace lives and where it stays
+(ADR-0001).
 
 The first apply runs on Google's hello container because the registry that
 holds your image is created by that same apply. See
@@ -177,31 +177,37 @@ The demo works where it has to work.
 
 ## Driving the deployed agent
 
-This is the way you run an invoice against the deployed service, not a fallback
-for when a browser is unavailable — the browser route does not exist, for the
-reason above.
+**In a browser, on the upload page.** That is the way, and it is the way the
+run of show uses at 0:42. Pick one invoice or a **batch** of them, press the
+button, and rows appear one at a time as each document comes back: supplier,
+invoice number, date, line count, total, whether it adds up, and one line of
+trace summary — *checked once, adds up*, or *checked twice, still over by
+1,400.00*. A document the agent could not process is a red row carrying the
+reason, and the rest of the batch carries on.
 
-`scripts/probe_deployed.py` drives the deployed service over the same HTTP API
-the developer UI uses: it creates a session, uploads one invoice as inline
-bytes, and prints the tool calls, the elapsed time and the finished record. It
-sends no `Origin`, which is exactly why it works where the UI does not.
+The limits are PDF, PNG and JPEG, ten megabytes a document, twenty documents a
+batch. They are declared once in `invoice_agent/upload.py`, interpolated into
+the page from there, and enforced again on the server, so the page and the
+service cannot disagree about them.
 
-```bash
-python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
-```
-
-It defaults to `http://localhost:8080`, which is where the proxy puts the
-service. Pass a second argument to point it somewhere else, such as a container
-you are running locally, or the `run.app` URL:
+**Programmatically**, the endpoint is one multipart POST per document:
 
 ```bash
-INVOICE_ID_TOKEN="$(gcloud auth print-identity-token)" \
-  python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf \
-  "$(gcloud run services describe invoice-agent --region europe-west1 \
-     --project "$PROJECT_ID" --format='value(status.url)')"
+curl -F file=@samples/invoices/04-halden-rigged-total.pdf \
+  http://localhost:8080/analyze
 ```
 
-Through the proxy no token is needed, because the proxy signs each request.
+It answers with the finished record, whether validation passed, the archive
+pointer and the trace summary. One document in, one record out, one agent run
+per document in a fresh session — see ADR-0003 for why a batch is sequenced in
+the browser rather than handed to the agent whole.
+
+**`scripts/probe_deployed.py` posts to `/analyze` now.** It used to create a
+session and post to ADK's streaming run endpoint, which the deployed
+application does not mount any more (ADR-0002). It sends the same multipart
+request the upload page sends, which makes it a check of the contract that
+actually ships rather than of one nothing uses. Point it at the Origin shim,
+or at any base URL as a second argument.
 
 ## Running the container on your own machine
 

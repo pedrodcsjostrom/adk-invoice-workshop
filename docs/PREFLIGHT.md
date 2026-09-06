@@ -222,7 +222,9 @@ are worth discovering today rather than tomorrow.
 
 - The clone, opened in your editor.
 - **Three terminals** in that directory. You will need all three at once late in
-  the hour: one running the agent, one for gcloud and Terraform, one for the
-  proxy.
+  the hour: one running the agent, one for gcloud and Terraform, and one for the
+  single command that opens your deployed service — `python
+  scripts/origin_shim.py`, which prints a URL and holds that terminal until you
+  stop it. Three is the whole of it; nothing in the hour asks for a fourth.
 - Your project id somewhere you can paste from.
 - The workshop is hands-on from minute five. Nothing else to prepare.

@@ -119,6 +119,13 @@ So the deployed agent opens the way every attendee is told to open it, and
 > does. The proxy is proved for `/records` and for the agent's HTTP API, and
 > disproved for the developer UI. See
 > [`cloud-run-origin-403.md`](cloud-run-origin-403.md).
+>
+> **And superseded, 2026-09-06 ([#62](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/62)).**
+> The routes in that table no longer exist on the deployed service: it serves
+> an upload page at `/` and the records page at `/records`, both ours, and no
+> developer UI (ADR-0001). The way in is `python scripts/origin_shim.py`, which
+> deletes the header the 403 was about, so a browser does open the deployed
+> service — it just does not open a page that is no longer there.
 
 **One hazard the tarball route introduces**, and the pre-flight should say so:
 gcloud warns that there are now two installations on `PATH`. An attendee who

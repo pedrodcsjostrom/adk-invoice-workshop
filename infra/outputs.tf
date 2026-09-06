@@ -4,7 +4,7 @@ output "image_repository" {
 }
 
 output "proxy_command" {
-  description = "Run this, then open http://localhost:8080/records, or drive the agent with scripts/probe_deployed.py. The developer UI does not load through the proxy: docs/research/cloud-run-origin-403.md."
+  description = "The raw proxy. Prefer 'python scripts/origin_shim.py', which runs this and deletes the Origin header Cloud Run refuses on any upload from a browser, then open the URL it prints: / is the upload page, /records lists what the agent filed. See docs/research/cloud-run-origin-403.md."
   value       = "gcloud run services proxy ${google_cloud_run_v2_service.agent.name} --region ${var.region} --project ${var.project_id}"
 }
 

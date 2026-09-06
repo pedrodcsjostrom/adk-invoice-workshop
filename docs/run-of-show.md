@@ -2,7 +2,7 @@
 
 **Status: rehearsed end to end, from a clean clone to a shut-down project, including through the proxy.** Ticket [#11](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/11). Every number below is now measured rather than budgeted, and what the run found is in [`research/rehearsal-run.md`](research/rehearsal-run.md) ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)) — including a defect in the before-and-after this whole outline is built on.
 
-**One thing the rehearsal got wrong, corrected at 0:00 and 0:42.** The deployed developer UI cannot be opened in a browser through the proxy: Cloud Run rejects the module-script requests that carry an `Origin` header, and the page loads styled and blank. #15 read three 200s from curl and never opened a browser. See [`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md) ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)).
+**What the deployed service is now, and what that moved.** It no longer serves the ADK developer UI. It serves an **upload page** of our own at its root — a file picker and a results table — with the **records page** beside it unchanged, and the way in is one command, the **Origin shim** ([#55](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/55), ADR-0001 and ADR-0004). The rehearsal's finding stands as a finding: a browser cannot open the *developer UI* on a deployed service, because Cloud Run refuses the module-script requests that carry an `Origin` header and #15 read three 200s from curl without opening one ([`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md), [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)). It is now a fact about a page that is not deployed. The shim deletes that header, so the pages that are deployed open in a browser, and **0:00 and 0:42 are rewritten below** on the strength of that ([#62](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/62)).
 
 What goes on the projector and what is said over each running command live in
 [`deck.md`](deck.md) and [`speaker-notes.md`](speaker-notes.md) ([#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32)). Five slides, only one of
@@ -44,9 +44,13 @@ Hands-on time: roughly 35 of the 60 minutes.
 
 One slide. The promise stated plainly: *by the end of the hour you will have deployed an agent that reads a real PDF invoice, catches one that does not add up, and files it anyway with a flag.*
 
-Then 60 seconds of the finished thing: an upload and its tool trace in Peter's **local** developer UI, then the records page on his already-deployed service with one red flagged row. They see the destination before they build it, and they see both halves of it.
+Then 60 seconds of the finished thing: an upload and its tool trace in Peter's **local** developer UI, then the deployed sandbox service in the next tab — the upload page they will be sending invoices to at 0:42, and the records page behind it with one red flagged row already in it. They see the destination before they build it, and they see both halves of it.
 
-The demo is split across two machines-worth of surface for a reason. The developer UI on a deployed service does not load through the proxy at all ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)), so the upload has to be local. The records page is deployed, which is the half worth showing deployed.
+**The split survives the thing that caused it.** It was forced: a deployed upload was impossible ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)) so the upload had to be local and the deployed half had to be a table. That constraint is gone ([#62](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/62)) and the whole demo could now run on the deployed sandbox. It should not, for two reasons.
+
+The trace is the product — it is the third takeaway on the last slide and it is the payoff at 0:31 — and the trace lives in the developer UI. The upload page shows one line of trace summary on purpose (ADR-0001), which is the right amount at 0:42 and not enough to open on. And a live model call inside the first sixty seconds is the worst place in the hour to put one: it is thirty seconds of the sixty, cold-arrival triage is happening in the same breath, and a slow first call is watched by a room that has not yet been told the failure is designed. So the deployed half of the open stays a page that is already loaded, and the live deployed upload happens at 0:42, where there is a budget for the wait and where it is the attendee's own service rather than Peter's.
+
+What changes is that the deployed half is now two tabs rather than one, and the first of them is the upload page. It costs ten seconds and it means nobody meets that page for the first time at 0:42 on their own screen.
 
 Say out loud, once, the thing that makes the hour make sense: **the failure is designed, and it is the point.** Otherwise the best minute of the hour reads as a bug.
 
@@ -66,7 +70,7 @@ If someone's join does not take, grant them by email on the spot — effective t
 
 ## 0:05 — 0:09 · The repo, and one command (4 min)
 
-Tour the shape, not the code. `invoice_agent/` with agent, tools, validation, store and server; `samples/invoices/`; `data/vendor_registry.json`; `solutions/`; `infra/`.
+Tour the shape, not the code. `invoice_agent/` with agent, tools, validation, store, and the two pages the deployed service serves; `server.py` at the root, which is the whole of what runs in the container; `samples/invoices/`; `data/vendor_registry.json`; `solutions/`; `infra/`.
 
 Name the two gaps now so nobody is surprised by them. There are **two** escape
 hatches, one per gap, and each already sits in the comment fence in the
@@ -179,17 +183,21 @@ Questions, catch-up, breath. This block exists to be spent.
 
 - **0:39** Check the build landed, with `gcloud builds describe <id>` or the tail of `gcloud builds list`. A failure surfaces here and the answer is a synchronous rebuild while the room moves on without them.
 - **0:40** Second `terraform apply`, with `-var "image=$IMAGE"` or it puts the hello container back. Forty-one seconds, one revision replaced, container start included (#15).
-- **0:41** `gcloud run services proxy` in a spare terminal. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/18)).
-- **0:42** Run the rigged invoice against the deployed agent **from the terminal**, not from a browser:
+- **0:41** The Origin shim, in a spare terminal. One command, and it prints the one URL to open:
 
   ```bash
-  python scripts/probe_deployed.py samples/invoices/04-halden-rigged-total.pdf
+  python scripts/origin_shim.py
   ```
 
-  Seventeen seconds measured through the proxy, and it prints the tool trace: **the same double check appears**, running as the stack's service account rather than as a human. The record lands in the named Firestore database and the original PDF lands in the bucket ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)).
-- **0:43** Open `localhost:8080/records` in a browser. The flagged row is there, rendered by the service they just deployed, reading Firestore under its own identity. One deployable, and now they have seen why that claim is true rather than aspirational.
+  It starts `gcloud run services proxy` as a child, deletes the `Origin` header Cloud Run refuses, and takes the proxy down with it on Ctrl-C. This terminal stays running for the rest of the hour. There is no public URL anywhere in the kit and no branch in the instructions ([#18](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/18)), and there is no second terminal or second port either, which is the whole of [#61](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/61).
+- **0:42** Open the URL it printed. That is the **upload page on their own service**: pick `01-northwind-clean.pdf` and `04-halden-rigged-total.pdf` together, press the button, and watch two rows land one at a time. Sixteen and eighteen seconds measured on Cloud Run, so budget forty for the pair. The clean row reads *adds up: yes, checked once*; the rigged row is red, carries every number exactly as printed, and its trace summary says **checked twice, still over by 1,400.00**. The same double check, running as the stack's service account rather than as a human, on the service they deployed four minutes ago.
 
-**Do not open the developer UI on the deployed service.** It does not load through the proxy on its own: Cloud Run's front door refuses any authenticated request carrying a cross-origin `Origin` header, the Angular bundles are module scripts, and module scripts always send one. The page comes up styled and completely blank. That is [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52), with the evidence in [`research/cloud-run-origin-403.md`](research/cloud-run-origin-403.md). Deleting that header does fix it, and `scripts/strip_origin_proxy.py` does exactly that, but it is a second process in the hot path and this block does not use it. On the clock the developer UI is a local tool; the deployed service is reached by the probe script and the records page.
+  Two invoices rather than the eleven the page will take. A batch is capped at twenty (ADR-0003) and filling the records page in one go is a fine thing to do — over a coffee, not over a two-minute block, since each document is its own model call.
+- **0:43** Follow the link on the upload page to the records page. Both rows are there, rendered by the service they just deployed, reading Firestore under its own identity, the flagged one marked. One deployable, and now they have seen why that claim is true rather than aspirational.
+
+**This block ends on the agent working rather than on a table**, which is the reason the collection was worth rewriting at all ([#62](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/62)). It used to run the rigged invoice from the terminal with `scripts/probe_deployed.py`, because the deployed service served the developer UI and no browser could open it. It serves pages of ours now (ADR-0001), and a room watching its own upload land is worth more than a room watching a terminal print a trace it has already read twice.
+
+**The developer UI is still a local tool** and there is nothing on the deployed service to look for it in. If someone asks why at 0:42, the answer is one Cloud Run cross-origin rule and it is in [`DEPLOY.md`](DEPLOY.md); do not spend the block on it.
 
 Talk over the waits: why `min_instance_count = 0` is the 86x lever on idle cost, and why the service runs as its own service account rather than the Compute Engine default.
 
@@ -227,7 +235,7 @@ Repo URL on screen and recitable. Feedback ask.
 The room will run late. Cut in this order and say nothing about it:
 
 1. **Slack at 0:36** (3 min). It exists to be spent.
-2. **The cloud run of the rigged invoice at 0:42** (2 min). Open the records page, prove the service answers, and move on; they already did the real thing locally. **Cutting this cuts 0:43 with it** — nothing has written to their Firestore, so their own records page reads "0 filed". Show Peter's instead, exactly as item 4 says.
+2. **The upload against their own service at 0:42** (2 min). Open the upload page, prove the service they deployed answers, and move on; they already did the real thing locally. **Cutting this cuts 0:43 with it** — nothing has written to their Firestore, so their own records page reads "0 filed". Show Peter's instead, exactly as item 4 says. Cut the whole upload, not half of it: sending one document and abandoning the wait is worse than never starting.
 3. **The wrap-up at 0:49** compresses from 8 minutes to 3. The take-home is in the README.
 4. **Their own records page at 0:43** (1 min). Show Peter's instead.
 5. **The clean-invoice run at 0:18** (2 min). Go straight to the rigged one. Costs the contrast, which is a real loss.
@@ -236,8 +244,8 @@ The room will run late. Cut in this order and say nothing about it:
 
 ## Still open
 
-1. **Two gcloud installations on `PATH`.** The proxy itself is settled — #15 reached the deployed service through `gcloud run services proxy`, and #52 then found the one route it cannot carry, the developer UI — but the way #15 got there introduces a trap. An attendee without a password installs the tarball SDK, which takes `cloud-run-proxy` in nine seconds without root, and then has two gcloud installations. Keep calling the apt one and the component is still missing, for no visible reason. gcloud warns about this; the pre-flight should too. The pre-flight check on #12 is the only thing standing between an attendee and a service they cannot open, and #15 must rehearse *through* the proxy rather than around it.
-2. **Three terminals** by 0:41: the developer UI, gcloud and Terraform, and the proxy. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them. The probe at 0:42 runs in terminal 2, not a fourth.
+1. **Two gcloud installations on `PATH`.** The proxy itself is settled — #15 reached the deployed service through `gcloud run services proxy`, #52 found the one route it could not carry, and the shim now deletes the header that route died on — but the way #15 got there introduces a trap. An attendee without a password installs the tarball SDK, which takes `cloud-run-proxy` in nine seconds without root, and then has two gcloud installations. Keep calling the apt one and the component is still missing, for no visible reason. gcloud warns about this; the pre-flight should too. The shim says so in a plain sentence when the component is absent, which is a better place to find out than a stack trace, but the pre-flight check on #12 is still the only thing standing between an attendee and a service they cannot open at 0:41.
+2. **Three terminals** by 0:41: the developer UI, gcloud and Terraform, and the shim. Nobody has been asked to manage that yet, and the pre-flight is the place to warn them. Three is now the ceiling rather than a stage on the way to four: the shim runs the proxy as a child rather than asking for a terminal of its own ([#61](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/61)), and 0:42 happens in a browser rather than back in terminal 2.
 3. **`terraform apply -auto-approve`** assumes the room should not be typing `yes` while listening to an explanation. Fine for a workshop, and worth one sentence about why it is not what you would do at work.
 4. **Whether `adk web` needs a restart** to pick up an edited `INSTRUCTION`. The payoff segment assumes it does. If ADK reloads it, the segment gets smoother and a minute cheaper.
 5. **The measured numbers came from one machine on good wifi**, in `europe-west1`. Conference wifi is the variable none of them account for, and the build's 52 seconds includes a source upload.

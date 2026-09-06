@@ -39,12 +39,33 @@ The developer UI, where you upload the PDF yourself:
 uv run adk web .
 ```
 
-Or the deployable, which is the same UI plus the records page on one port — the
-form Cloud Run runs:
+Or the deployable — the form Cloud Run runs, and the one you can open in a
+browser once it is deployed:
 
 ```bash
-uv run python -m invoice_agent.server   # http://localhost:8080/records
+uv run python server.py   # http://localhost:8080
 ```
+
+It serves two pages and nothing else. The **upload page** at `/` is a file
+picker and a results table: pick one invoice or up to twenty, press the button,
+and a row appears as each document comes back — supplier, invoice number, date,
+line count, total, whether it adds up, and one line saying how many times the
+arithmetic check ran and what it said. A document that fails is a red row
+carrying the reason, and the rest carry on. The **records page** at `/records`
+lists everything filed, newest first. There is no ADK developer UI here; that
+stays local under `adk web`, because the full trace is what it is for.
+
+Once it is deployed, the way to reach it is one command:
+
+```bash
+python scripts/origin_shim.py    # then open the URL it prints
+```
+
+The service is private, so everything goes through `gcloud run services proxy`
+— and Cloud Run's front door refuses any request carrying an `Origin` header,
+which a browser attaches to every upload. The **Origin shim** runs the proxy
+for you, deletes that one header, prints the URL and takes the proxy down with
+it on Ctrl-C. [docs/DEPLOY.md](docs/DEPLOY.md) has the whole path.
 
 ## Where the records go
 
@@ -138,7 +159,9 @@ gaps are still gaps. A morning-of fix is a **new** tag — `workshop-2026-09-17.
 - `invoice_agent/` — the agent: one `LlmAgent`, three tools, one output schema
 - `invoice_agent/store.py` — records and archived documents, local or cloud
 - `invoice_agent/records.py` — the records page
-- `invoice_agent/server.py` — the deployable: developer UI plus records page
+- `invoice_agent/upload.py` — the upload page and the `/analyze` endpoint behind it
+- `server.py` — the deployable: our own FastAPI app, serving those two pages
+- `scripts/origin_shim.py` — the Origin shim, the one command that opens a deployed service
 - `scripts/make_invoice.py` — generates the sample invoice, `--big` for a 10 MB one
 - `solutions/` — the finished `tools.py` and `agent.py`, the escape hatch
 - `scripts/smoke.py` — headless end-to-end check
@@ -151,7 +174,8 @@ gaps are still gaps. A morning-of fix is a **new** tag — `workshop-2026-09-17.
 - `scripts/cut_workshop_tag.sh` — cuts the tag attendees clone
 - `docs/research/` — what was verified, and how
 
-`CONTEXT.md` at the root is the glossary the docs share.
+`CONTEXT.md` at the root is the glossary the docs share, and `docs/adr/` holds
+the decisions behind the deployed service.
 
 Planning for the kit lives on the issue tracker as
 [Map: 60-minute Google ADK invoice-analyzer workshop kit](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/1).

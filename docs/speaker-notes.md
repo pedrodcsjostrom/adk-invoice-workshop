@@ -2,7 +2,7 @@
 
 **Status: reviewed by Peter, unrehearsed.** Ticket [#32](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/32). Companion to [`run-of-show.md`](run-of-show.md) and [`deck.md`](deck.md).
 
-The hour deliberately runs commands under talking. Four windows are long enough that improvising over them will show. Each script below is written to be **said**, not read — spoken at a normal pace, the word counts land inside the measured wait. The 0:05 section is the exception: it is not a dead window, it is the narration that replaced a cut slide, and it is not racing a command. Each has a **short tail** to drop if the command finishes early and a **stretch** if it runs long.
+The hour deliberately runs commands under talking. Four windows are long enough that improvising over them will show. W4 is the one that grew: since the deployed service serves an upload page of ours ([#62](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/62)), it runs on through the shim at 0:41 and the upload at 0:42, so its script covers the second apply, the container start and about forty seconds of two invoices analysing in a browser. It is still one window because it is one continuous stretch of the host talking over machines. Each script below is written to be **said**, not read — spoken at a normal pace, the word counts land inside the measured wait. The 0:05 section is the exception: it is not a dead window, it is the narration that replaced a cut slide, and it is not racing a command. Each has a **short tail** to drop if the command finishes early and a **stretch** if it runs long.
 
 Timings in brackets are the measured numbers from [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22). None of this has been said out loud yet; [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is what turns these budgets into measurements.
 
@@ -57,7 +57,7 @@ cd infra && terraform apply -auto-approve
 >
 > While it goes: if your gap test is still red, copy the solution file now. The command is in the comment at the top of `tools.py` — every gap in this repo carries its own recovery line, so you never have to ask me for it.
 
-**[switch to slide 4 — the loop]**
+**[switch to slide 3 — the loop]**
 
 > Here is the whole idea, and it is smaller than people expect. An agent is three things. A model. A set of tools. An instruction. You run it in a loop until it stops asking for tools. That is it. There is no fourth thing.
 
@@ -119,7 +119,7 @@ gcloud builds list --limit 1
 
 ---
 
-## W4 · 0:40 — over the second apply and the container start [29s + 11s, budget ~40s]
+## W4 · 0:40-0:42 — over the second apply, the shim and the first deployed upload [29s + 11s, then ~40s]
 
 Two facts, one per wait. Both are things attendees will actually hit next week.
 
@@ -147,13 +147,23 @@ in the shell unless the terminal was replaced. See [`DEPLOY.md`](DEPLOY.md).
 
 **Tail to drop:** the second fact. Keep `min_instance_count`; it is the one that saves them money.
 
-**Stretch:** *"And the service is private. There is no public URL anywhere in this kit — no `allUsers`, nothing you could accidentally leave open. Which is why the next thing we run is a proxy."*
+**Stretch:** *"And the service is private. There is no public URL anywhere in this kit — no `allUsers`, nothing you could accidentally leave open. Which is why the next thing we run is one command that opens it for you."*
 
-**Then, over the probe at 0:42** — one line, because the room will expect a browser and will not get one:
+**Then, over the shim at 0:41** — one line, said while it prints its URL:
 
-> *"We are not opening the chat window on this one, we are calling it. Same API the UI uses, one command. Watch the trace."*
+> *"One command. It runs the Cloud Run proxy for you and deletes one header that Cloud Run will not accept from a browser. Open the address it prints — that is your service, not mine."*
 
-Do not explain why on the clock. The reason is a Cloud Run cross-origin rule ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)), it is interesting to nobody at 0:42, and the answer for whoever asks afterwards is in [`DEPLOY.md`](DEPLOY.md).
+Do not explain the header on the clock. The reason is a Cloud Run cross-origin rule ([#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52)), it is interesting to nobody at 0:41, and the answer for whoever asks afterwards is in [`DEPLOY.md`](DEPLOY.md).
+
+**Then, over the upload at 0:42** — about forty seconds of two documents analysing, and this is the one wait in the collection where the room is looking at something:
+
+> *"Pick both of them — the clean one and the Halden one — and send them. They go one at a time, and each row appears when that invoice is done.
+>
+> There is the clean one. Adds up, checked once.
+>
+> And there is Halden. Red, every number exactly as printed, and read the last column: **checked twice**. That is the thing you typed at 0:25, running on a container in `europe-west1`, as a service account, on a project that did not exist yesterday. Nobody's laptop is in that sentence."*
+
+**Tail to drop:** the last sentence. **Stretch:** *"That last column is one line, not a trace. The trace is a local tool and you have already read it twice today — this is the deployed version telling you the same thing in eight words."*
 
 ---
 
@@ -198,9 +208,9 @@ words and buys the rest of the sentence its credibility.
 ## Open on the notes
 
 1. **None of this has been said out loud.** The word counts are estimates against measured command times. [#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15) is the test. W2's *wording* is settled; its *timing* is not.
-2. **W4 assumes the proxy step follows immediately.** Settled: the proxy is proved ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)) and what follows it is the probe command, which now has its own line above rather than its own window.
+2. **W4 assumes the way in follows immediately.** Settled: the proxy is proved ([#15](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/15)), and what follows it is now one command and a browser — the Origin shim at 0:41 and the upload at 0:42, both scripted in W4 rather than left to improvisation ([#61](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/61), [#62](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/62)).
 3. **The 86x figure** comes from `docs/COST.md` — check it still says that before saying it in a room.
 4. **There are two recovery `cp` commands**, one per fence, and the run of show names only the `tools.py` one. Small correction to make there.
 5. **No narration is written for 0:18**, the first `adk web` launch. The run of show budgets seven minutes there for friction, which is attendee time rather than a dead window, but forty people hitting a telemetry consent dialog at once may want a scripted line too.
 6. **The Terraform directory is `infra/`.** W1 said `cd terraform`, which does not exist. Corrected above and in the run of show.
-7. **The proxy component is installable after all.** [#12](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/12) found `google-cloud-cli-cloud-run-proxy` is a package in the repo Google already ships, reopening the route [#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8) and [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22) wrote off. The pre-flight now checks for it, so W4's stretch line about the proxy stands. #15 then rehearsed the path, and [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52) found its one limit: the developer UI cannot load through the proxy, so 0:42 is a terminal command rather than an upload. Nothing on the deck changes; one narration line was added above.
+7. **The proxy component is installable after all.** [#12](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/12) found `google-cloud-cli-cloud-run-proxy` is a package in the repo Google already ships, reopening the route [#8](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/8) and [#22](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/22) wrote off. The pre-flight now checks for it, so W4's stretch line about the proxy stands. #15 then rehearsed the path, and [#52](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/52) found its one limit: the developer UI could not load through the proxy, because Cloud Run refuses a request carrying an `Origin` header. That limit was answered rather than worked around — the deployed service serves an upload page of ours and the shim deletes the header ([#55](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/55), [#61](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/61)) — so 0:42 is a browser upload against the attendee's own service again. Nothing on the deck changes; the W4 script above absorbed both minutes.

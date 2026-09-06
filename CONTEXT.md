@@ -103,6 +103,33 @@ The 30 minutes of setup every attendee does the day before, ending in one
 script that prints a report block they send back.
 _Avoid_: setup, prerequisites, onboarding
 
+## The service
+
+**Upload page**:
+The page on the deployed service where an attendee picks invoice documents and
+sends them to the agent. Replaces the ADK developer UI on Cloud Run; the
+developer UI remains the local tool, because the trace is what the hour is for.
+_Avoid_: console, intake page, dashboard, drop zone
+
+**Records page**:
+The page on the deployed service listing every invoice the agent has filed,
+newest first, flagged by whether it adds up. Readable by anyone who can reach
+the service, with nothing to sign into.
+_Avoid_: results page, table, dashboard
+
+**Batch**:
+The set of documents picked on the upload page in one go. Each document is
+still analysed on its own; a batch is a convenience for the person picking,
+not a unit the agent ever sees.
+_Avoid_: job, queue, run, upload
+
+**Origin shim**:
+The local process that deletes the `Origin` header on the way to the deployed
+service, and the single command that runs it. Without it Cloud Run's front door
+refuses every upload, because a browser attaches that header to any request
+that is not a plain page load.
+_Avoid_: the proxy, the workaround, the strip script
+
 ## The agent
 
 **Rigged invoice**:

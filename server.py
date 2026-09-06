@@ -1,41 +1,34 @@
-"""One process, one port: the ADK developer UI and the records page.
+"""The deployed application, written here rather than built by ADK.
 
-`adk web` is a convenience wrapper around this same FastAPI app. The container
-calls the app factory directly instead, for three reasons that only show up on
-Cloud Run: the port comes from `$PORT`, the app must bind `0.0.0.0` rather than
-localhost, and the session store must not be a file on a disk that disappears
-when the instance scales to zero.
+This used to call ADK's `get_fast_api_app`, which meant the container served
+the developer UI and ADK's REST API. It no longer does either. The developer UI
+cannot be opened in a browser against a private Cloud Run service anyway, and
+it is a large Angular application the workshop uses one button of, so the
+deployed service serves pages of our own instead. See ADR-0001.
 
-Because it is one app, the records page is a route on it (issue #9), served by
-the same command on the same port. Nothing else needs to be deployed.
+The developer UI is still where the hour's payoff happens. It just happens
+locally, under `adk web`, against the same agent package, unchanged.
+
+So this is a plain FastAPI app with the records page mounted on it (issue #9)
+and the upload page and its analyze endpoint beside it (issue #57), run by
+uvicorn the way Cloud Run needs: the port comes from `$PORT` rather than a
+flag, and the app binds `0.0.0.0`, because a container that binds localhost
+fails its startup probe. Sessions live in memory, since a Cloud Run instance's
+disk is memory and anything that matters is written to Firestore by the
+persistence tool.
 """
 
 import os
 
 import uvicorn
-from google.adk.cli.fast_api import get_fast_api_app
+from fastapi import FastAPI
 
-from invoice_agent.records import router
+from invoice_agent import records, upload
 
-# The directory holding agent packages, not the package itself.
-AGENTS_DIR = os.path.dirname(os.path.abspath(__file__))
+app = FastAPI(title="Invoice agent")
 
-app = get_fast_api_app(
-    agents_dir=AGENTS_DIR,
-    web=True,
-    # No session_service_uri: sessions live in memory. A Cloud Run instance is
-    # disposable, and a sqlite file in the image would give each instance its
-    # own private history while pretending to be durable. What matters survives
-    # in Firestore, written by the persistence tool.
-    session_service_uri=None,
-    host="0.0.0.0",
-    port=int(os.environ.get("PORT", "8080")),
-)
-
-# The docstring above promised this and the module never did it: without the
-# include, the deployed container serves the developer UI and returns 404 for
-# /records. Added after the sandbox deploy (#13) hit exactly that.
-app.include_router(router)
+app.include_router(records.router)
+app.include_router(upload.router)
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))

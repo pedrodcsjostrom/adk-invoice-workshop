@@ -1,11 +1,14 @@
-# The one deployable: the ADK developer UI, plus the records page it serves
-# from its own identity.
+# The one deployable: our own FastAPI application, serving the upload page and
+# the records page from its own identity. The ADK developer UI is not deployed
+# and stays a local tool under `adk web` (ADR-0001).
 #
 # The service is private. There is no allUsers invoker binding and no
 # invoker-iam-disabled annotation, because domain restricted sharing blocks the
-# first for corporate attendees and the second removes authentication from a UI
-# that can read everything. Everyone reaches it the same way:
-#   gcloud run services proxy <name> --region <region> --project <project>
+# first for corporate attendees and the second removes authentication from
+# pages that can read every record filed. Everyone reaches it the same way, one
+# command, which runs the proxy and deletes the Origin header Cloud Run refuses
+# on an upload from a browser (ADR-0004):
+#   python scripts/origin_shim.py --project <project>
 resource "google_cloud_run_v2_service" "agent" {
   name     = var.name
   location = var.region
