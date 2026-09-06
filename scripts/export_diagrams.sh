@@ -2,8 +2,15 @@
 # Renders docs/architecture/workspace.dsl to committed SVGs, and serves the
 # interactive viewer.
 #
-#   scripts/export_diagrams.sh          exports and renders docs/architecture/svg
-#   scripts/export_diagrams.sh serve    serves the viewer on http://localhost:8090
+#   scripts/export_diagrams.sh              exports and renders docs/architecture/svg
+#   scripts/export_diagrams.sh serve        serves the viewer on http://localhost:8090
+#   scripts/export_diagrams.sh validate     parses the workspace and says nothing if it is fine
+#
+# Anything else is handed to the Structurizr container as its own subcommand,
+# so the docker invocation never has to be remembered:
+#
+#   scripts/export_diagrams.sh inspect -workspace workspace.dsl
+#   scripts/export_diagrams.sh export -workspace workspace.dsl -format json -output .
 #
 # Both steps run entirely offline: the Structurizr theme is vendored beside the
 # workspace, and the plain Structurizr PlantUML flavour is used rather than the
@@ -44,6 +51,18 @@ offline() {
     -v "$ROOT:/work" -w /work/docs/architecture \
     "$@"
 }
+
+if [ "${1:-export}" = "validate" ]; then
+  offline "$STRUCTURIZR_IMAGE" validate -workspace workspace.dsl
+  exit $?
+fi
+
+# Any other subcommand goes straight to Structurizr, working directory already
+# on the workspace, so `-workspace workspace.dsl` is all the path it needs.
+if [ $# -gt 0 ]; then
+  offline "$STRUCTURIZR_IMAGE" "$@"
+  exit $?
+fi
 
 mkdir -p "$SVG" "$PUML"
 rm -f "$PUML"/*.puml

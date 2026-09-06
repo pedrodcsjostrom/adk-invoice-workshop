@@ -38,6 +38,18 @@ theme's colours and drops its icons, and the C4-PlantUML flavour that would
 carry them is the one that fetches its library over the network. Every box
 therefore names its technology, which is what a reader without an icon needs.
 
+Any other Structurizr subcommand goes through the same script, so the docker
+invocation never has to be remembered:
+
+```bash
+./scripts/export_diagrams.sh validate
+./scripts/export_diagrams.sh inspect -workspace workspace.dsl
+```
+
+`inspect` is advisory. It currently reports fifteen relationships with no
+technology label, which is deliberate: a component calling a component is a
+Python function call, and saying so on every arrow is noise.
+
 ## Exploring it
 
 ```bash
