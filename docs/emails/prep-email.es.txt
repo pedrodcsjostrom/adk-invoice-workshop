@@ -1,0 +1,208 @@
+--------------------------------------------------------------------
+RELLENAR ANTES DE ENVIAR (borra este bloque antes de pegar el correo)
+
+  [FECHA]       la fecha del taller
+  [DIA LIMITE]  el día en que quieres los informes, el día anterior
+  La firma      Pedro
+
+Se envía tres días antes, en texto plano, sin formato.
+--------------------------------------------------------------------
+
+Subject: Antes del taller del [FECHA]: 30 minutos hoy, por favor
+
+
+Hola:
+
+En el taller construimos y desplegamos un agente de IA real en tu propio
+proyecto de Google Cloud, en sesenta minutos. Eso solo cabe en la hora si la
+instalación está hecha de antes, así que te pido que hagas esto hoy y no la
+mañana del taller.
+
+
+QUÉ NECESITAS
+
+Un portátil en el que puedas instalar software, una cuenta de Google y una
+tarjeta para la prueba gratuita de Google Cloud. La tarjeta es para activar la
+prueba, no para pagarme a mí: el taller entero consume unos 20 céntimos de
+tokens de Gemini y nada más. Mientras estás en periodo de prueba Google no puede
+cobrarte, porque cierra la cuenta de prueba en lugar de facturarla.
+
+Si la tarjeta es un problema para ti, ven igualmente. Tengo un entorno compartido
+preparado para ese caso, se usa desde el minuto uno y no te vas a quedar mirando
+cómo trabajan los demás. Dímelo por respuesta a este correo para saber cuántos
+sois.
+
+
+CUÁNTO TARDA
+
+Unos 30 minutos. La mayor parte es esperar descargas, unos 250 MB en total. Lo
+que de verdad llena la media hora es darse de alta en la prueba gratuita, dos
+inicios de sesión en el navegador y una espera inevitable de diez minutos en el
+paso 3, mientras Google activa las APIs. Empieza por el paso 3 y haz el resto
+mientras se asienta.
+
+El repositorio y toda su documentación están en inglés. Los comandos son los
+mismos: los copias y los pegas.
+
+
+PASO 1. INSTALA CINCO COSAS
+
+  gcloud          https://docs.cloud.google.com/sdk/docs/install
+  terraform 1.5+  https://developer.hashicorp.com/terraform/install
+  python 3.10+    tu gestor de paquetes, o sáltatelo y uv se trae el suyo
+  uv              curl -LsSf https://astral.sh/uv/install.sh | sh
+  git             tu gestor de paquetes
+
+Y luego la sexta, que es la que se salta todo el mundo:
+
+gcloud components install cloud-run-proxy
+
+El agente que despliegas es privado, no tiene URL pública, y eso es a propósito.
+La única forma de llegar a él es ese proxy. Si instalaste gcloud con un gestor de
+paquetes, el comando de arriba se negará a funcionar, pero se niega diciéndote el
+comando exacto que sí funciona. En Debian o Ubuntu es este:
+
+sudo apt-get install google-cloud-cli-cloud-run-proxy
+
+Si instalaste gcloud con snap, o si no tienes contraseña de administrador en esa
+máquina, hay una salida que tarda dos minutos. Está en la sección 1 de la página
+que enlazo al final.
+
+
+PASO 2. CREA UN PROYECTO Y VINCÚLALE FACTURACIÓN
+
+Un proyecto solo para el taller, para que borrarlo después no te cueste nada.
+
+gcloud projects create mi-taller-agentes --name="Taller de agentes"
+
+Después vincúlale una cuenta de facturación, aquí:
+
+https://console.cloud.google.com/billing/linkedaccount
+
+Esto no es opcional y no va del dinero. Un proyecto sin facturación vinculada no
+puede usar Google Cloud en absoluto, ni siquiera la capa gratuita.
+
+
+PASO 3. ACTIVA LAS APIS Y ESPERA DIEZ MINUTOS
+
+Ocho APIs, un comando. Hazlo al menos diez minutos antes de ejecutar el script
+del paso 7, porque la activación tarda en propagarse y es más lenta en un
+proyecto recién creado.
+
+export PROJECT_ID=mi-taller-agentes
+
+gcloud services enable run.googleapis.com artifactregistry.googleapis.com cloudbuild.googleapis.com compute.googleapis.com firestore.googleapis.com aiplatform.googleapis.com iam.googleapis.com cloudresourcemanager.googleapis.com --project="$PROJECT_ID"
+
+mkdir -p ~/.config/adk-workshop && date +%s > ~/.config/adk-workshop/apis-enabled-at
+
+Esa última línea guarda cuándo lo hiciste, para que el script del paso 7 pueda
+decirte "espera un poco más" en vez de dejarte creer que tu proyecto está roto.
+
+En el taller Terraform no activa estas APIs. No puede: activar una API y usarla
+en el mismo apply es la forma más común de que este tipo de despliegue falle.
+
+
+PASO 4. INICIA SESIÓN. EL ORDEN DE ESTOS DOS COMANDOS IMPORTA
+
+gcloud config set project "$PROJECT_ID"
+gcloud auth application-default login
+
+La primera línea es lo que hace que la segunda guarde un quota project en tus
+credenciales. Al revés, el apply del taller se para con un error de quota project
+que no se parece en nada a lo que estabas haciendo.
+
+Si tu perfil de shell define GOOGLE_APPLICATION_CREDENTIALS, quítalo. Anula en
+silencio todo lo que acabas de hacer.
+
+
+PASO 5. CLONA EL REPOSITORIO Y CALIÉNTALO
+
+git clone https://github.com/pedrodcsjostrom/adk-invoice-workshop.git
+cd adk-invoice-workshop
+
+cp invoice_agent/.env.example invoice_agent/.env
+
+Edita invoice_agent/.env y pon tu id de proyecto en GOOGLE_CLOUD_PROJECT.
+Después:
+
+uv sync
+terraform -chdir=infra init
+
+Estas dos descargas son la razón principal de que este correo te llegue con tres
+días de antelación. Cuarenta portátiles bajando el ADK y el proveedor de Google a
+la vez por el wifi del local no es un plan, y en la hora no hay hueco para eso.
+Hazlo en tu wifi de casa.
+
+
+PASO 6. ABRE LA INTERFAZ DE DESARROLLO UNA VEZ
+
+uv run adk web .
+
+Abre http://127.0.0.1:8000 y elige invoice_agent en el desplegable de arriba a la
+izquierda. No te saltes esa parte: elegir el agente es lo que crea la sesión
+local, y es lo que busca el script del paso 7. Arrancar el servidor y pararlo no
+deja rastro, y la comprobación te seguirá avisando.
+
+La primera vez sale además un diálogo de consentimiento de telemetría y se
+imprimen dos avisos de aspecto alarmante que son inofensivos. Responde al
+diálogo, mira la interfaz y para el servidor con Ctrl-C. Quitarnos esto de encima
+hoy vale dos minutos del tiempo de la sala.
+
+Si ejecutas los tests verás uno en rojo. Es a propósito: el repositorio trae dos
+huecos que rellenas tú durante la sesión.
+
+
+PASO 7. EJECUTA LA COMPROBACIÓN Y MÁNDAME EL INFORME
+
+./scripts/preflight_check.sh
+
+Comprueba unas treinta cosas y tarda unos segundos. No cambia nada, salvo pedirle
+a Gemini que diga "ping", que es la única comprobación que demuestra el camino
+entero en vez de deducirlo. Termina con un bloque así:
+
+================= PRE-FLIGHT REPORT =================
+RESULT      : READY
+...
+=====================================================
+
+Mándame ese bloque entero, por respuesta a este correo, antes del [DIA LIMITE],
+DIGA LO QUE DIGA. Si pone NOT READY mándamelo igual: eso es exactamente lo que
+necesito ver y todavía hay tiempo de arreglarlo. Un NOT READY de hoy es un
+problema resuelto. Un NOT READY descubierto el día del taller te cuesta un tercio
+de la sesión.
+
+Cada fallo que reporta el script viene con el comando que lo arregla.
+
+
+DOS NOTAS
+
+Si la cuenta de Google que usas es la de tu empresa, el proyecto hereda políticas
+de la organización que tú no puedes cambiar. La mayoría no molestan, y el script
+te dice cuáles sí. Dos bloquean de verdad: una política que restrinja las
+regiones, y no ser Owner de tu propio proyecto. Las dos necesitan a quien
+administre vuestro cloud, y con una cuenta personal te ahorras las dos.
+
+"APIs enabled only N minutes ago" no es un fallo. Espera y vuelve a ejecutarlo.
+
+
+PARA EL DÍA DEL TALLER
+
+- El repositorio clonado y abierto en tu editor.
+- Tres terminales en esa carpeta. Las tres hacen falta a la vez al final de la
+  hora. Tres es todo; nada de lo que hacemos pide una cuarta.
+- Tu id de proyecto en algún sitio de donde puedas copiarlo.
+- No hagas git pull esa mañana. Si sale un arreglo por la noche lo digo desde
+  delante, y será un clon nuevo, nunca un pull sobre una copia en la que ya has
+  empezado a escribir.
+
+Se trabaja con las manos desde el minuto cinco. No hay nada más que preparar.
+
+Si te atascas en cualquier paso, respóndeme y lo vemos. La página completa, con
+las salidas para snap, para máquinas sin permisos de administrador y para cuentas
+de empresa, está aquí, en inglés:
+
+https://github.com/pedrodcsjostrom/adk-invoice-workshop/blob/main/docs/PREFLIGHT.md
+
+Nos vemos el [FECHA].
+
+Pedro

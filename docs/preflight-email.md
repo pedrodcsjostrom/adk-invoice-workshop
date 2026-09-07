@@ -11,45 +11,29 @@ approve, and that takes a working day.
 
 ## The email
 
-> **Subject: Before Thursday's agent workshop — 30 minutes today, please**
->
-> We build and deploy a real AI agent to your own Google Cloud project in sixty
-> minutes. That only fits because the setup happens beforehand, so please do
-> this today rather than on the morning.
->
-> It takes about 30 minutes, most of it waiting on downloads. You need a laptop
-> you can install software on, a Google account, and a card for Google's free
-> trial. The whole workshop costs about 20 cents of it.
->
-> Start here:
->
-> ```
-> git clone https://github.com/pedrodcsjostrom/adk-invoice-workshop.git
-> cd adk-invoice-workshop
-> open docs/PREFLIGHT.md
-> ```
->
-> Or read the same page in the browser:
-> https://github.com/pedrodcsjostrom/adk-invoice-workshop/blob/main/docs/PREFLIGHT.md
->
-> The last step runs one script that checks everything:
->
-> ```
-> ./scripts/preflight_check.sh
-> ```
->
-> **Reply with the report block it prints, whatever it says.** If it says NOT
-> READY, send it anyway — that is exactly what I need to see, and there is time
-> to fix it. If you cannot get there at all, come anyway: there is a shared
-> sandbox you can use, and you will not be left behind.
->
-> — Peter
+The sendable text lives in
+[emails/prep-email.es.txt](emails/prep-email.es.txt). It is Spanish, plain text,
+and self-contained: every step an attendee types is in the body, and
+[PREFLIGHT.md](PREFLIGHT.md) is linked only for the two long detours — the
+tarball SDK, and corporate accounts. Paste it as plain text, not as HTML;
+markdown syntax arrives as literal punctuation and attendees drag stray
+backticks into their shells.
+
+Three blanks to fill each delivery, listed in a comment at the top of the file:
+the workshop date, the reply deadline, and the sign-off. Delete that comment
+block before sending.
+
+Edit the `.txt` rather than this page. This page is host operations; that file
+is the artifact.
 
 ## The reminder, the morning before
 
-> Quick reminder: if you have not sent me your pre-flight report yet, please run
-> it today. It takes 30 minutes and the workshop is hands-on from minute five.
-> Everything is here:
+Not a separate file — three sentences, sent only to whoever has not replied.
+
+> Recordatorio rapido: si todavia no me has mandado tu informe de preparacion,
+> ejecutalo hoy. Son 30 minutos y en el taller se trabaja con las manos desde el
+> minuto cinco. Todo esta en el correo del [FECHA DEL PRIMER CORREO], y la
+> pagina completa aqui:
 > https://github.com/pedrodcsjostrom/adk-invoice-workshop/blob/main/docs/PREFLIGHT.md
 
 ## Reading forty reports
