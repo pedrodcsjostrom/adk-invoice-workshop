@@ -6,7 +6,7 @@ written. Run it with
 
     uv run pytest tests/test_gap_arithmetic.py
 
-It never talks to Vertex AI, Firestore or the network. A wrong tool signature
+It never talks to the Agent Platform, Firestore or the network. A wrong tool signature
 otherwise surfaces minutes later as a confusing model-side error, which is the
 worst way to lose an attendee.
 """

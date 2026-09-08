@@ -563,11 +563,11 @@ else
       pass "$MODEL answered at $MODEL_LOCATION — this is the check that proves the hour works" ;;
     403)
       if grep -qi 'has not been used in project\|is disabled' "$body"; then
-        fail "Vertex AI is not enabled, or not propagated yet" \
+        fail "the Agent Platform API is not enabled, or not propagated yet" \
              "Enable it and wait ten minutes:" \
              "  gcloud services enable aiplatform.googleapis.com --project=$PROJECT_ID"
       else
-        admin "Vertex AI refused this account (403)" \
+        admin "the Agent Platform refused this account (403)" \
               "You can reach the API but are not allowed to call the model." \
               "Ask for roles/aiplatform.user on $PROJECT_ID." \
               "$(head -c 300 "$body")"
@@ -608,7 +608,7 @@ else
     fi
     if grep -q '^GOOGLE_API_KEY=\|^GOOGLE_GENAI_API_KEY=' "$REPO_ROOT/invoice_agent/.env"; then
       fail "invoice_agent/.env sets an API key" \
-           "An API key switches the agent off Vertex AI. Delete that line."
+           "An API key switches the agent off the Agent Platform. Delete that line."
     fi
   else
     fail "invoice_agent/.env does not exist" \

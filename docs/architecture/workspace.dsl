@@ -33,7 +33,7 @@ workspace "ADK invoice workshop" "The deployed invoice-analyzer service an atten
 
         originShim = softwareSystem "Origin shim" "Deletes the Origin header on the way to the deployed service. Runs on the attendee's laptop (ADR-0004)." "External"
 
-        gemini = softwareSystem "Vertex AI Gemini" "The model backend. Reads the document, decides which tool to call." "External"
+        gemini = softwareSystem "Gemini Enterprise Agent Platform" "The model backend, called Vertex AI until the April 2026 rename. Reads the document, decides which tool to call." "External"
 
         deployedService = softwareSystem "Deployed service" "The invoice analyzer in the attendee's own Google Cloud project: the upload page, the records page and the agent." {
 
@@ -71,7 +71,7 @@ workspace "ADK invoice workshop" "The deployed invoice-analyzer service an atten
 
         uploadPage -> invoiceAnalyzer "Drives one run per document with an ADK Runner"
         invoiceAnalyzer -> documentGuard "Passes every turn through, before the model"
-        documentGuard -> gemini "Sends the turn on, only with document bytes attached" "Vertex AI API"
+        documentGuard -> gemini "Sends the turn on, only with document bytes attached" "Agent Platform API"
         invoiceAnalyzer -> arithmeticTool "Calls with the LineItem list and the printed total. Twice, on the rigged invoice"
         invoiceAnalyzer -> lookupTool "Calls once with the supplier name as printed"
         invoiceAnalyzer -> saveTool "Calls once with the finished InvoiceRecord"
@@ -102,7 +102,7 @@ workspace "ADK invoice workshop" "The deployed invoice-analyzer service an atten
                 }
             }
 
-            vertexNode = deploymentNode "Vertex AI" "Outside the project boundary in the sense that matters here: nobody deploys it." "Google Cloud" {
+            agentPlatformNode = deploymentNode "Gemini Enterprise Agent Platform" "Outside the project boundary in the sense that matters here: nobody deploys it." "Google Cloud" {
                 geminiInstance = softwareSystemInstance gemini
             }
 
@@ -118,7 +118,7 @@ workspace "ADK invoice workshop" "The deployed invoice-analyzer service an atten
             include *
             include attendee
             autoLayout lr
-            description "What an attendee reaches, and what it reaches out to. The Origin shim is outside the boundary: it runs on a laptop, not in the project. Vertex AI Gemini is outside it because nobody deploys the model."
+            description "What an attendee reaches, and what it reaches out to. The Origin shim is outside the boundary: it runs on a laptop, not in the project. Gemini is outside it because nobody deploys the model."
         }
 
         container deployedService "Containers" {

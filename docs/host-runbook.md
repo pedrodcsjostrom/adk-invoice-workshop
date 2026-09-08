@@ -469,12 +469,12 @@ that the hour is now the local hour and the one thing still happens. The
 recovered fifteen minutes go to the wrap-up and questions, not to retrying.
 Your hotspot is for the projector and the sandbox, not for forty laptops.
 
-**Vertex is slow.** Narrate longer and start cutting from the top of the cut
+**The Agent Platform is slow.** Narrate longer and start cutting from the top of the cut
 list immediately, before you are behind rather than after. Every measured
 number in the kit came from one machine on good wifi; treat a first run at
 double the budget as the new budget and re-plan on that.
 
-**Vertex is down or quota-limited.** There is no local model fallback anywhere
+**The Agent Platform is down or quota-limited.** There is no local model fallback anywhere
 in this kit and pretending otherwise would be the lie. The hour becomes a
 walkthrough on your screen: the room still types both fill-ins, and you run the
 rigged invoice yourself the moment anything answers. If nothing answers at all,

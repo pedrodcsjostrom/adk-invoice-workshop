@@ -225,5 +225,5 @@ docker run --rm -p 8080:8080 \
 ```
 
 Mounting the gcloud config is what stands in for the service account: locally
-the container calls Vertex AI as you, on Cloud Run as the stack's runtime
+the container calls the Agent Platform as you, on Cloud Run as the stack's runtime
 service account. Nothing else differs.

@@ -13,7 +13,7 @@ variable "region" {
 # the infrastructure region and the model endpoint cannot be one variable.
 # See docs/research/gcp-project-preflight-and-cost.md, section 5.
 variable "model_location" {
-  description = "Vertex AI endpoint the agent calls. Only the global endpoint serves gemini-3.5-flash."
+  description = "Agent Platform endpoint the agent calls. Only the global endpoint serves gemini-3.5-flash."
   type        = string
   default     = "global"
 }

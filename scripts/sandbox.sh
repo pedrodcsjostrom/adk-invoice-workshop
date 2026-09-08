@@ -177,7 +177,7 @@ gcloud run services add-iam-policy-binding "$SERVICE" \
   --member=allAuthenticatedUsers --role=roles/run.viewer >/dev/null
 ok "run.invoker + run.viewer on $SERVICE"
 
-# --- 4b. Vertex for agents running on attendee laptops ----------------------
+# --- 4b. Agent Platform for agents running on attendee laptops --------------
 # Wildcards are refused on a PROJECT policy, which is what #13 hit:
 #
 #   PROJECT_SET_IAM_DISALLOWED_MEMBER_TYPE
@@ -208,7 +208,7 @@ if [[ -z "$GROUP" ]]; then
   printf '    gcloud projects add-iam-policy-binding %s \\\n' "$PROJECT_ID"
   printf '      --member=user:THEIR_EMAIL --role=roles/serviceusage.serviceUsageConsumer\n\n'
 else
-  say "Granting Vertex to the access group"
+  say "Granting the Agent Platform to the access group"
   for ROLE in roles/aiplatform.user roles/serviceusage.serviceUsageConsumer; do
     gcloud projects add-iam-policy-binding "$PROJECT_ID" \
       --member="group:$GROUP" --role="$ROLE" >/dev/null
@@ -216,7 +216,7 @@ else
   done
 
   # Propagation was the risk #37 could not price and #40 measured: three
-  # seconds from joining the group to a working Vertex call, against this
+  # seconds from joining the group to a working Agent Platform call, against this
   # binding. The run of show budgeted thirteen minutes for it and needs none,
   # so a cold arrival can join at any point in the hour, not only at triage.
   ok "Membership reaches IAM in about three seconds (measured, #40)"

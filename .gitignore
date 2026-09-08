@@ -1,7 +1,7 @@
 # adk web's default local storage, written into the agent source directory
 .adk/
 
-# Per-developer Vertex AI settings; copy .env.example to get started
+# Per-developer Agent Platform settings; copy .env.example to get started
 invoice_agent/.env
 
 .venv/

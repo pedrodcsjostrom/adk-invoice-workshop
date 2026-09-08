@@ -2,7 +2,8 @@
 
 The 60-minute Google ADK invoice-analyzer workshop kit. Right now it holds the
 thinnest end-to-end slice: an invoice PDF goes in, a structured JSON record comes
-out, via one ADK agent running on Vertex AI.
+out, via one ADK agent running on the Gemini Enterprise Agent Platform, which
+was called Vertex AI until Google renamed it in April 2026.
 
 ## Attending the workshop?
 
@@ -15,7 +16,8 @@ ends with one script that says whether tomorrow will work:
 
 ## Run it
 
-You need a GCP project with billing and the Vertex AI API enabled.
+You need a GCP project with billing and the Agent Platform API enabled. The
+service id is still `aiplatform.googleapis.com`.
 
 ```bash
 gcloud services enable aiplatform.googleapis.com

@@ -2,8 +2,9 @@
 
 Read this before you apply anything. It is short on purpose.
 
-**The workshop hour costs you between $0.11 and $0.21.** All of it is Vertex AI
-Gemini tokens. Every other service in the stack is free at this volume, and if
+**The workshop hour costs you between $0.11 and $0.21.** All of it is Gemini
+tokens on the Gemini Enterprise Agent Platform, which was called Vertex AI until
+April 2026. Every other service in the stack is free at this volume, and if
 you are on the Google Cloud free trial you cannot be billed at all — see
 [The two kinds of attendee](#the-two-kinds-of-attendee).
 
@@ -15,7 +16,7 @@ When you are done: `scripts/teardown.sh`.
 
 | Service | At workshop volume | Why |
 |---|---|---|
-| **Vertex AI (Gemini)** | **$0.11–$0.21 per person** | The only line on the bill. Vertex AI has no free tier at all. |
+| **Agent Platform (Gemini)** | **$0.11–$0.21 per person** | The only line on the bill. It has no free tier at all. |
 | Cloud Run | free | Scales to zero between requests, and the free tier covers 2M requests a month. |
 | Firestore | free | A handful of documents. |
 | Cloud Storage | free | Nine invoices, and a 7-day lifecycle rule deletes them. |

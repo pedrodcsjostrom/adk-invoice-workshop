@@ -56,7 +56,7 @@ Say out loud, once, the thing that makes the hour make sense: **the failure is d
 
 **Cold-arrival triage happens here, in the first 60 seconds.** Hands up for anyone whose pre-flight did not pass. Put the sandbox slide up and give them three instructions, in this order — the sandbox handout of [#13](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/13), rewritten to [#37](https://github.com/pedrodcsjostrom/adk-invoice-workshop/issues/37):
 
-1. **Join the group** — QR code on the slide. Measured at three seconds from join to a working Vertex call, so this is not a race and nobody has to wait on it.
+1. **Join the group** — QR code on the slide. Measured at three seconds from join to a working Agent Platform call, so this is not a race and nobody has to wait on it.
 2. **Two lines in `.env`**: `GOOGLE_CLOUD_PROJECT=<sandbox id>` and `GOOGLE_CLOUD_LOCATION=global`.
 3. **`gcloud auth application-default login`**, then `gcloud auth application-default set-quota-project <sandbox id>`.
 
